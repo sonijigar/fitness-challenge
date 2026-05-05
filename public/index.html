@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="May Challenge">
+<title>May Challenge</title>
+<style>
+  :root { --green: #1D9E75; --green-light: #E1F5EE; --green-dark: #0F6E56; --bg: #f7f7f5; --surface: #ffffff; --text: #1a1a18; --text-2: #6b6b67; --text-3: #a5a5a0; --border: rgba(0,0,0,0.1); --radius: 14px; --radius-sm: 10px; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #141412; --surface: #1f1f1d; --text: #f0f0ee; --text-2: #9a9a96; --text-3: #5a5a57; --border: rgba(255,255,255,0.1); --green-light: #0d3d2c; } }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif; background: var(--bg); color: var(--text); }
+  body { display: flex; flex-direction: column; align-items: center; padding: env(safe-area-inset-top, 20px) 20px env(safe-area-inset-bottom, 20px); min-height: 100dvh; }
+  .wrap { width: 100%; max-width: 390px; display: flex; flex-direction: column; gap: 16px; padding-top: 12px; }
+  .header { text-align: center; padding: 8px 0 4px; }
+  .header-icon { width: 52px; height: 52px; background: var(--green); border-radius: 14px; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; }
+  .header-icon svg { width: 28px; height: 28px; fill: none; stroke: white; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .header h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; color: var(--text); }
+  .header p { font-size: 14px; color: var(--text-2); margin-top: 4px; }
+  .card { background: var(--surface); border-radius: var(--radius); border: 0.5px solid var(--border); overflow: hidden; }
+  .field { padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; }
+  .field + .field { border-top: 0.5px solid var(--border); }
+  .field label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-3); }
+  .field select, .field input { font-size: 17px; font-weight: 500; color: var(--text); background: transparent; border: none; outline: none; width: 100%; appearance: none; -webkit-appearance: none; font-family: inherit; }
+  .field input[type="date"] { color: var(--text-2); }
+  .field input[type="date"]::-webkit-calendar-picker-indicator { opacity: 0.4; }
+  .field select option { background: var(--surface); color: var(--text); }
+  .select-wrap { position: relative; }
+  .select-wrap::after { content: ''; position: absolute; right: 0; top: 50%; transform: translateY(-50%); width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 6px solid var(--text-3); pointer-events: none; }
+  .activity-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 14px 16px; }
+  .act-btn { background: var(--bg); border: 1.5px solid transparent; border-radius: var(--radius-sm); padding: 10px 6px; text-align: center; cursor: pointer; transition: all 0.15s; }
+  .act-btn:active { transform: scale(0.95); }
+  .act-btn.selected { background: var(--green-light); border-color: var(--green); }
+  .act-icon { font-size: 22px; display: block; margin-bottom: 4px; }
+  .act-label { font-size: 12px; font-weight: 500; color: var(--text-2); }
+  .act-btn.selected .act-label { color: var(--green-dark); }
+  .duration-row { display: flex; align-items: center; gap: 12px; padding: 14px 16px; }
+  .dur-btn { width: 36px; height: 36px; border-radius: 50%; background: var(--bg); border: 0.5px solid var(--border); font-size: 20px; font-weight: 300; color: var(--text); cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.1s; }
+  .dur-btn:active { transform: scale(0.9); background: var(--green-light); }
+  .dur-display { flex: 1; text-align: center; }
+  .dur-num { font-size: 36px; font-weight: 700; letter-spacing: -1px; color: var(--text); line-height: 1; }
+  .dur-unit { font-size: 13px; color: var(--text-3); margin-top: 2px; }
+  .submit-btn { width: 100%; padding: 17px; font-size: 17px; font-weight: 600; background: var(--green); color: white; border: none; border-radius: var(--radius); cursor: pointer; transition: all 0.15s; letter-spacing: -0.2px; font-family: inherit; }
+  .submit-btn:active { transform: scale(0.97); opacity: 0.9; }
+  .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+  .toast { position: fixed; bottom: calc(env(safe-area-inset-bottom, 0px) + 24px); left: 50%; transform: translateX(-50%) translateY(80px); background: var(--text); color: var(--bg); font-size: 15px; font-weight: 500; padding: 12px 24px; border-radius: 999px; transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1); white-space: nowrap; z-index: 100; }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  .section-label { font-size: 13px; font-weight: 600; color: var(--text-2); padding: 0 4px; }
+  .optional-tag { font-size: 10px; font-weight: 400; color: var(--text-3); margin-left: 4px; text-transform: none; letter-spacing: 0; }
+  .dashboard-link { text-align: center; font-size: 13px; color: var(--text-3); }
+  .dashboard-link a { color: var(--green); text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <div class="header-icon"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
+    <h1>May Challenge</h1>
+    <p>250 hours · May 2026</p>
+  </div>
+  <div class="dashboard-link"><a href="/dashboard.html">📊 View squad dashboard →</a></div>
+  <div>
+    <div class="section-label" style="margin-bottom:8px">Who's logging?</div>
+    <div class="card">
+      <div class="field">
+        <label>Your name</label>
+        <div class="select-wrap">
+          <select id="name-select">
+            <option value="">Select name…</option>
+            <option>Aashka</option><option>Heli</option><option>Himani</option>
+            <option>Jigar</option><option>Karan</option><option>Kashyap</option>
+            <option>Khushboo</option><option>Malhar</option><option>Raghav</option>
+            <option>Vishrut</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div>
+    <div class="section-label" style="margin-bottom:8px">Activity</div>
+    <div class="card">
+      <div class="activity-grid">
+        <button class="act-btn" data-activity="Running" onclick="selectActivity(this)"><span class="act-icon">🏃</span><span class="act-label">Running</span></button>
+        <button class="act-btn" data-activity="Hiking" onclick="selectActivity(this)"><span class="act-icon">🥾</span><span class="act-label">Hiking</span></button>
+        <button class="act-btn" data-activity="Lifting" onclick="selectActivity(this)"><span class="act-icon">🏋️</span><span class="act-label">Lifting</span></button>
+        <button class="act-btn" data-activity="Cycling" onclick="selectActivity(this)"><span class="act-icon">🚴</span><span class="act-label">Cycling</span></button>
+        <button class="act-btn" data-activity="Walking" onclick="selectActivity(this)"><span class="act-icon">🚶</span><span class="act-label">Walking</span></button>
+        <button class="act-btn" data-activity="HIIT" onclick="selectActivity(this)"><span class="act-icon">💪</span><span class="act-label">HIIT</span></button>
+        <button class="act-btn" data-activity="Swimming" onclick="selectActivity(this)"><span class="act-icon">🏊</span><span class="act-label">Swimming</span></button>
+        <button class="act-btn" data-activity="Yoga" onclick="selectActivity(this)"><span class="act-icon">🧘</span><span class="act-label">Yoga</span></button>
+        <button class="act-btn" data-activity="Volleyball" onclick="selectActivity(this)"><span class="act-icon">🏐</span><span class="act-label">Volleyball</span></button>
+        <button class="act-btn" data-activity="Climbing" onclick="selectActivity(this)"><span class="act-icon">🧗</span><span class="act-label">Climbing</span></button>
+        <button class="act-btn" data-activity="Other" onclick="selectActivity(this)"><span class="act-icon">⚡</span><span class="act-label">Other</span></button>
+      </div>
+    </div>
+  </div>
+  <div>
+    <div class="section-label" style="margin-bottom:8px">Duration</div>
+    <div class="card">
+      <div class="duration-row">
+        <button class="dur-btn" onclick="adjustDur(-5)">−</button>
+        <div class="dur-display"><div class="dur-num" id="dur-num">45</div><div class="dur-unit">minutes</div></div>
+        <button class="dur-btn" onclick="adjustDur(5)">+</button>
+      </div>
+    </div>
+  </div>
+  <div>
+    <div class="section-label" style="margin-bottom:8px">Date <span class="optional-tag">optional · defaults to today</span></div>
+    <div class="card">
+      <div class="field">
+        <input type="date" id="log-date" min="2026-05-01" max="2026-05-31" />
+      </div>
+    </div>
+  </div>
+  <button class="submit-btn" id="submit-btn" onclick="submitWorkout()">Log workout</button>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+  let selectedActivity = null, duration = 45;
+  const API_URL = '/api/log';
+  function selectActivity(btn) { document.querySelectorAll('.act-btn').forEach(b => b.classList.remove('selected')); btn.classList.add('selected'); selectedActivity = btn.dataset.activity; }
+  function adjustDur(delta) { duration = Math.max(5, Math.min(300, duration + delta)); document.getElementById('dur-num').textContent = duration; }
+  async function submitWorkout() {
+    const name = document.getElementById('name-select').value;
+    if (!name) { showToast('Pick your name first'); return; }
+    if (!selectedActivity) { showToast('Pick an activity'); return; }
+    const btn = document.getElementById('submit-btn');
+    btn.disabled = true; btn.textContent = 'Logging…';
+    const date = document.getElementById('log-date').value || new Date().toISOString().split('T')[0];
+    try {
+      const res = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, activity: selectedActivity, mins: duration, date }) });
+      const data = await res.json();
+      if (res.ok) { showToast('Logged! ' + duration + ' min of ' + selectedActivity); selectedActivity = null; duration = 45; document.querySelectorAll('.act-btn').forEach(b => b.classList.remove('selected')); document.getElementById('dur-num').textContent = 45; document.getElementById('name-select').value = ''; document.getElementById('log-date').value = ''; }
+      else { showToast(data.error || 'Something went wrong'); }
+    } catch(e) { showToast('Network error — try again'); }
+    btn.disabled = false; btn.textContent = 'Log workout';
+  }
+  function showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(t._timer); t._timer = setTimeout(() => t.classList.remove('show'), 3000); }
+  const saved = localStorage.getItem('may-challenge-name');
+  if (saved) document.getElementById('name-select').value = saved;
+  document.getElementById('name-select').addEventListener('change', e => { if (e.target.value) localStorage.setItem('may-challenge-name', e.target.value); });
+</script>
+</body>
+</html>

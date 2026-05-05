@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>May Challenge · Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --green: #1D9E75; --green-2: #E1F5EE; --green-3: #0a5c44;
+    --bg: #0e0e0c; --surface: #161614; --surface-2: #1e1e1b;
+    --text: #f0f0ee; --text-2: #8a8a84; --text-3: #4a4a46;
+    --border: rgba(255,255,255,0.07);
+    --red: #e05555; --yellow: #e0a855; --blue: #5580e0;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { font-size: 16px; }
+  body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 0; }
+
+  .page { max-width: 900px; margin: 0 auto; padding: 32px 20px 60px; }
+
+  /* HEADER */
+  .header { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 36px; flex-wrap: wrap; gap: 12px; }
+  .header-left h1 { font-family: 'Syne', sans-serif; font-size: clamp(28px, 5vw, 42px); font-weight: 800; letter-spacing: -1.5px; line-height: 1; color: var(--text); }
+  .header-left h1 span { color: var(--green); }
+  .header-left p { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--text-2); margin-top: 6px; letter-spacing: 0.05em; }
+  .header-right { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--text-3); text-align: right; }
+  .live-dot { display: inline-block; width: 6px; height: 6px; background: var(--green); border-radius: 50%; margin-right: 6px; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+  /* HERO PROGRESS */
+  .hero { background: var(--surface); border: 0.5px solid var(--border); border-radius: 20px; padding: 28px 28px 24px; margin-bottom: 16px; position: relative; overflow: hidden; }
+  .hero::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--green), transparent); }
+  .hero-nums { display: flex; align-items: flex-end; gap: 8px; margin-bottom: 20px; }
+  .hero-current { font-family: 'Syne', sans-serif; font-size: clamp(48px, 10vw, 80px); font-weight: 800; letter-spacing: -3px; line-height: 1; color: var(--text); }
+  .hero-slash { font-family: 'DM Mono', monospace; font-size: 24px; color: var(--text-3); margin-bottom: 10px; }
+  .hero-goal { font-family: 'DM Mono', monospace; font-size: 20px; color: var(--text-2); margin-bottom: 10px; }
+  .hero-unit { font-size: 14px; color: var(--text-2); margin-bottom: 12px; margin-left: 4px; }
+  .hero-bar-wrap { position: relative; }
+  .hero-bar-bg { height: 6px; background: var(--surface-2); border-radius: 999px; overflow: visible; }
+  .hero-bar-fill { height: 6px; background: var(--green); border-radius: 999px; transition: width 1s cubic-bezier(0.34, 1.56, 0.64, 1); position: relative; }
+  .hero-bar-fill::after { content: ''; position: absolute; right: -1px; top: -3px; width: 12px; height: 12px; background: var(--green); border-radius: 50%; border: 2px solid var(--bg); }
+  .pace-marker { position: absolute; top: -4px; width: 2px; height: 14px; background: var(--text-3); border-radius: 1px; }
+  .pace-label { position: absolute; top: 16px; font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text-3); transform: translateX(-50%); white-space: nowrap; }
+  .hero-meta { display: flex; gap: 24px; margin-top: 20px; flex-wrap: wrap; }
+  .hero-meta-item { display: flex; flex-direction: column; gap: 2px; }
+  .hero-meta-label { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text-3); letter-spacing: 0.08em; text-transform: uppercase; }
+  .hero-meta-val { font-family: 'DM Mono', monospace; font-size: 16px; color: var(--text); font-weight: 500; }
+  .hero-meta-val.green { color: var(--green); }
+  .hero-meta-val.red { color: var(--red); }
+  .hero-meta-val.yellow { color: var(--yellow); }
+
+  /* STATS GRID */
+  .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 16px; }
+  .stat-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: 14px; padding: 18px 20px; }
+  .stat-label { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text-3); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 8px; }
+  .stat-val { font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 800; letter-spacing: -1px; color: var(--text); line-height: 1; }
+  .stat-sub { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text-3); margin-top: 4px; }
+
+  /* TWO COL */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+  @media(max-width: 600px) { .two-col { grid-template-columns: 1fr; } }
+
+  /* LEADERBOARD */
+  .card { background: var(--surface); border: 0.5px solid var(--border); border-radius: 16px; padding: 20px; }
+  .card-title { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-3); margin-bottom: 16px; }
+  .member-row { display: flex; align-items: center; gap: 12px; padding: 8px 0; border-bottom: 0.5px solid var(--border); }
+  .member-row:last-child { border-bottom: none; padding-bottom: 0; }
+  .member-rank { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text-3); width: 18px; flex-shrink: 0; }
+  .member-rank.gold { color: #f0c040; }
+  .member-rank.silver { color: #a0a0a0; }
+  .member-rank.bronze { color: #c07840; }
+  .member-avatar { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; flex-shrink: 0; font-family: 'DM Mono', monospace; }
+  .member-info { flex: 1; min-width: 0; }
+  .member-name { font-size: 14px; font-weight: 500; color: var(--text); }
+  .member-hrs { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text-2); margin-top: 1px; }
+  .member-bar-wrap { width: 80px; flex-shrink: 0; }
+  .member-bar-bg { height: 3px; background: var(--surface-2); border-radius: 999px; overflow: hidden; }
+  .member-bar-fill { height: 3px; background: var(--green); border-radius: 999px; }
+  .member-hrs-num { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--text); font-weight: 500; flex-shrink: 0; width: 44px; text-align: right; }
+
+  /* ACTIVITY BREAKDOWN */
+  .activity-row { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 0.5px solid var(--border); }
+  .activity-row:last-child { border-bottom: none; }
+  .activity-icon { font-size: 18px; width: 28px; flex-shrink: 0; }
+  .activity-name { font-size: 13px; color: var(--text); flex: 1; }
+  .activity-bar-wrap { width: 70px; }
+  .activity-bar-bg { height: 3px; background: var(--surface-2); border-radius: 999px; overflow: hidden; }
+  .activity-bar-fill { height: 3px; border-radius: 999px; }
+  .activity-hrs { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--text-2); flex-shrink: 0; width: 38px; text-align: right; }
+
+  /* WEEKLY CHART */
+  .chart-wrap { display: flex; align-items: flex-end; gap: 6px; height: 80px; padding-top: 8px; }
+  .bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; height: 100%; }
+  .bar-outer { flex: 1; width: 100%; display: flex; align-items: flex-end; }
+  .bar-inner { width: 100%; background: var(--green); border-radius: 4px 4px 0 0; min-height: 2px; transition: height 0.8s cubic-bezier(0.34, 1.56, 0.64, 1); opacity: 0.85; }
+  .bar-inner.today { background: var(--green); opacity: 1; }
+  .bar-inner.future { background: var(--surface-2); opacity: 1; }
+  .bar-label { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--text-3); }
+  .bar-label.today { color: var(--green); }
+
+  /* NAV */
+  .nav { display: flex; gap: 12px; margin-bottom: 28px; }
+  .nav a { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--text-3); text-decoration: none; letter-spacing: 0.05em; padding: 6px 12px; border: 0.5px solid var(--border); border-radius: 999px; transition: all 0.15s; }
+  .nav a:hover { color: var(--text); border-color: var(--text-3); }
+  .nav a.active { color: var(--green); border-color: var(--green); }
+
+  /* LOADING */
+  .loading { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 60vh; gap: 12px; }
+  .loading-spinner { width: 32px; height: 32px; border: 2px solid var(--border); border-top-color: var(--green); border-radius: 50%; animation: spin 0.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading p { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--text-3); }
+
+  .colors { display: none; }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="header">
+    <div class="header-left">
+      <h1>MAY <span>CHALLENGE</span></h1>
+      <p>SQUAD ANALYTICS · 250 HRS · MAY 2026</p>
+    </div>
+    <div class="header-right">
+      <span class="live-dot"></span>LIVE DATA<br>
+      <span id="last-updated">—</span>
+    </div>
+  </div>
+
+  <div class="nav">
+    <a href="/index.html">↑ Log workout</a>
+    <a href="/dashboard.html" class="active">Dashboard</a>
+  </div>
+
+  <div id="main-content">
+    <div class="loading">
+      <div class="loading-spinner"></div>
+      <p>Loading squad data...</p>
+    </div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://teyafvhzoznsjknhinrd.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_BwZtfeVzUS_hoY-3L75T1w_CfFntJYM';
+const GOAL_MINS = 250 * 60;
+const MAY_DAYS = 31;
+const MAY_START = new Date('2026-05-01');
+const MEMBERS = ['Aashka','Heli','Himani','Jigar','Karan','Kashyap','Khushboo','Malhar','Raghav','Vishrut'];
+const COLORS = [
+  ['#0d3d2c','#4ade80'],['#1a2a4a','#60a5fa'],['#3d2a0d','#fbbf24'],
+  ['#3d0d2a','#f472b6'],['#1a3d1a','#86efac'],['#2a1a3d','#a78bfa'],
+  ['#3d1a0d','#fb923c'],['#2a2a1a','#d4d4aa'],['#3d0d0d','#f87171'],['#0d2a3d','#38bdf8']
+];
+const ACT_ICONS = {Running:'🏃',Hiking:'🥾',Lifting:'🏋️',Cycling:'🚴',Walking:'🚶',HIIT:'💪',Swimming:'🏊',Yoga:'🧘',Volleyball:'🏐',Climbing:'🧗',Other:'⚡'};
+const ACT_COLORS = ['#1D9E75','#5580e0','#e0a855','#e05555','#a855e0','#55e0c8','#e08055','#80e055','#e055c8'];
+
+async function fetchWorkouts() {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/workouts?select=*&order=date.asc`, {
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+  });
+  return res.json();
+}
+
+function render(workouts) {
+  const now = new Date();
+  const today = now.toISOString().split('T')[0];
+  const dayOfMay = Math.min(MAY_DAYS, Math.max(1, Math.floor((now - MAY_START) / 86400000) + 1));
+  const daysLeft = Math.max(0, MAY_DAYS - dayOfMay + 1);
+  const totalMins = workouts.reduce((s, w) => s + w.mins, 0);
+  const totalHrs = (totalMins / 60);
+  const pct = Math.min(100, totalMins / GOAL_MINS * 100);
+  const expectedMins = (dayOfMay / MAY_DAYS) * GOAL_MINS;
+  const paceDiff = (totalMins - expectedMins) / 60;
+  const ahead = paceDiff >= 0;
+  const neededPerPerson = Math.max(0, (GOAL_MINS - totalMins) / 60 / MEMBERS.length);
+  const projectedMins = daysLeft > 0 ? totalMins + (totalMins / dayOfMay) * daysLeft : totalMins;
+  const projectedHrs = (projectedMins / 60).toFixed(0);
+  const onTrack = projectedMins >= GOAL_MINS;
+
+  // Per member
+  const memberData = MEMBERS.map((name, i) => {
+    const mins = workouts.filter(w => w.name === name).reduce((s, w) => s + w.mins, 0);
+    return { name, mins, hrs: mins / 60, sessions: workouts.filter(w => w.name === name).length, color: COLORS[i] };
+  }).sort((a, b) => b.mins - a.mins);
+
+  // Per activity
+  const actData = {};
+  workouts.forEach(w => { actData[w.activity] = (actData[w.activity] || 0) + w.mins; });
+  const actSorted = Object.entries(actData).sort((a, b) => b[1] - a[1]);
+  const maxActMins = actSorted[0]?.[1] || 1;
+
+  // Weekly breakdown (last 5 weeks of May)
+  const weeks = [];
+  for (let w = 0; w < 5; w++) {
+    const start = w * 7 + 1;
+    const end = Math.min((w + 1) * 7, 31);
+    if (start > 31) break;
+    const label = `W${w + 1}`;
+    const mins = workouts.filter(wk => {
+      const d = parseInt(wk.date.split('-')[2]);
+      return d >= start && d <= end;
+    }).reduce((s, wk) => s + wk.mins, 0);
+    const isCurrent = dayOfMay >= start && dayOfMay <= end;
+    const isFuture = dayOfMay < start;
+    weeks.push({ label, mins, hrs: mins / 60, isCurrent, isFuture });
+  }
+  const maxWeekMins = Math.max(...weeks.map(w => w.mins), 1);
+
+  document.getElementById('last-updated').textContent = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+
+  document.getElementById('main-content').innerHTML = `
+    <!-- HERO -->
+    <div class="hero">
+      <div class="hero-nums">
+        <div class="hero-current">${totalHrs.toFixed(1)}</div>
+        <div class="hero-unit">hrs</div>
+        <div class="hero-slash">/</div>
+        <div class="hero-goal">250</div>
+      </div>
+      <div class="hero-bar-wrap">
+        <div class="hero-bar-bg">
+          <div class="hero-bar-fill" style="width:${pct}%"></div>
+        </div>
+        <div class="pace-marker" style="left:${(dayOfMay/MAY_DAYS)*100}%"></div>
+        <div class="pace-label" style="left:${(dayOfMay/MAY_DAYS)*100}%">TODAY</div>
+      </div>
+      <div class="hero-meta">
+        <div class="hero-meta-item">
+          <span class="hero-meta-label">Pace</span>
+          <span class="hero-meta-val ${ahead ? 'green' : 'red'}">${ahead ? '+' : ''}${paceDiff.toFixed(1)}h</span>
+        </div>
+        <div class="hero-meta-item">
+          <span class="hero-meta-label">Days left</span>
+          <span class="hero-meta-val">${daysLeft}</span>
+        </div>
+        <div class="hero-meta-item">
+          <span class="hero-meta-label">Projected</span>
+          <span class="hero-meta-val ${onTrack ? 'green' : 'yellow'}">${projectedHrs}h</span>
+        </div>
+        <div class="hero-meta-item">
+          <span class="hero-meta-label">Need/person</span>
+          <span class="hero-meta-val">${neededPerPerson.toFixed(1)}h</span>
+        </div>
+        <div class="hero-meta-item">
+          <span class="hero-meta-label">Sessions</span>
+          <span class="hero-meta-val">${workouts.length}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- WEEKLY CHART + ACTIVITY -->
+    <div class="two-col" style="margin-bottom:16px">
+      <div class="card">
+        <div class="card-title">Weekly hours</div>
+        <div class="chart-wrap">
+          ${weeks.map(w => `
+            <div class="bar-col">
+              <div class="bar-outer">
+                <div class="bar-inner ${w.isCurrent ? 'today' : ''} ${w.isFuture ? 'future' : ''}" style="height:${w.isFuture ? 4 : Math.max(4, (w.mins/maxWeekMins)*100)}%"></div>
+              </div>
+              <div class="bar-label ${w.isCurrent ? 'today' : ''}">${w.label}</div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">By activity</div>
+        ${actSorted.length ? actSorted.map(([act, mins], i) => `
+          <div class="activity-row">
+            <div class="activity-icon">${ACT_ICONS[act] || '⚡'}</div>
+            <div class="activity-name">${act}</div>
+            <div class="activity-bar-wrap">
+              <div class="activity-bar-bg">
+                <div class="activity-bar-fill" style="width:${(mins/maxActMins)*100}%;background:${ACT_COLORS[i % ACT_COLORS.length]}"></div>
+              </div>
+            </div>
+            <div class="activity-hrs">${(mins/60).toFixed(1)}h</div>
+          </div>
+        `).join('') : '<p style="font-size:13px;color:var(--text-3);padding:8px 0">No workouts yet</p>'}
+      </div>
+    </div>
+
+    <!-- LEADERBOARD -->
+    <div class="card">
+      <div class="card-title">Squad leaderboard</div>
+      ${memberData.map((m, i) => `
+        <div class="member-row">
+          <div class="member-rank ${i===0?'gold':i===1?'silver':i===2?'bronze':''}">${i===0?'①':i===1?'②':i===2?'③':`${i+1}`}</div>
+          <div class="member-avatar" style="background:${m.color[0]};color:${m.color[1]}">${m.name.slice(0,2).toUpperCase()}</div>
+          <div class="member-info">
+            <div class="member-name">${m.name}</div>
+            <div class="member-hrs">${m.sessions} session${m.sessions !== 1 ? 's' : ''}</div>
+          </div>
+          <div class="member-bar-wrap">
+            <div class="member-bar-bg">
+              <div class="member-bar-fill" style="width:${Math.min(100,(m.mins/(GOAL_MINS/MEMBERS.length))*100)}%"></div>
+            </div>
+          </div>
+          <div class="member-hrs-num">${m.hrs.toFixed(1)}h</div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+fetchWorkouts().then(render).catch(e => {
+  document.getElementById('main-content').innerHTML = `<p style="color:var(--text-3);font-family:'DM Mono',monospace;font-size:13px">Failed to load data. Check console.</p>`;
+  console.error(e);
+});
+</script>
+</body>
+</html>
