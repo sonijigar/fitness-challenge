@@ -69,6 +69,23 @@
   .workout-activity { font-size: 14px; font-weight: 500; color: var(--text); }
   .workout-date { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text-3); margin-top: 2px; }
   .workout-mins { font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 500; color: var(--green); flex-shrink: 0; }
+  .delete-btn { background: none; border: none; color: var(--text-3); cursor: pointer; font-size: 14px; padding: 4px 6px; border-radius: 6px; transition: all 0.15s; flex-shrink: 0; line-height: 1; }
+  .delete-btn:hover { color: var(--red); background: rgba(224,85,85,0.1); }
+
+  /* CONFIRM MODAL */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 20px; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+  .modal-overlay.show { opacity: 1; pointer-events: all; }
+  .modal { background: var(--surface); border: 0.5px solid var(--border); border-radius: 16px; padding: 24px; width: 100%; max-width: 340px; }
+  .modal h3 { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+  .modal p { font-size: 14px; color: var(--text-2); margin-bottom: 16px; line-height: 1.5; }
+  .modal input { width: 100%; font-size: 15px; padding: 10px 12px; background: var(--surface-2); border: 0.5px solid var(--border); border-radius: 10px; color: var(--text); font-family: inherit; outline: none; margin-bottom: 12px; }
+  .modal input:focus { border-color: var(--green); }
+  .modal-actions { display: flex; gap: 8px; }
+  .modal-cancel { flex: 1; padding: 10px; font-size: 14px; font-weight: 500; background: var(--surface-2); color: var(--text-2); border: 0.5px solid var(--border); border-radius: 10px; cursor: pointer; font-family: inherit; }
+  .modal-confirm { flex: 1; padding: 10px; font-size: 14px; font-weight: 500; background: var(--red); color: white; border: none; border-radius: 10px; cursor: pointer; font-family: inherit; opacity: 0.4; transition: opacity 0.15s; }
+  .modal-confirm.enabled { opacity: 1; }
+  .modal-error { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--red); margin-top: -8px; margin-bottom: 8px; display: none; }
+  .modal-error.show { display: block; }
 
   /* ACTIVITY BREAKDOWN */
   .activity-row { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 0.5px solid var(--border); }
@@ -114,6 +131,20 @@
     <div class="loading">
       <div class="loading-spinner"></div>
       <p>Loading history...</p>
+    </div>
+  </div>
+</div>
+
+<!-- DELETE CONFIRMATION MODAL -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <h3>Delete workout?</h3>
+    <p id="modal-desc">This will permanently remove this workout from the challenge. Type your name to confirm.</p>
+    <input type="text" id="modal-input" placeholder="Type your name..." autocomplete="off" autocorrect="off" />
+    <div class="modal-error" id="modal-error">Name doesn't match — try again</div>
+    <div class="modal-actions">
+      <button class="modal-cancel" onclick="closeModal()">Cancel</button>
+      <button class="modal-confirm" id="modal-confirm-btn" onclick="confirmDelete()">Delete</button>
     </div>
   </div>
 </div>
@@ -269,11 +300,88 @@ function render(name, workouts) {
               <div class="workout-date">${formatDate(w.date)}</div>
             </div>
             <div class="workout-mins">${w.mins}m</div>
+            <button class="delete-btn" onclick="promptDelete(${w.id}, '${w.activity}', ${w.mins})" title="Delete workout">✕</button>
           </div>
         `).join('')}
       </div>
     `}
   `;
+}
+
+// DELETE LOGIC
+let pendingDeleteId = null;
+
+function promptDelete(id, activity, mins) {
+  pendingDeleteId = id;
+  document.getElementById('modal-desc').textContent = `Delete ${mins} min of ${activity}? Type your name to confirm.`;
+  document.getElementById('modal-input').value = '';
+  document.getElementById('modal-error').classList.remove('show');
+  document.getElementById('modal-confirm-btn').classList.remove('enabled');
+  document.getElementById('modal-overlay').classList.add('show');
+  setTimeout(() => document.getElementById('modal-input').focus(), 100);
+}
+
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('show');
+  pendingDeleteId = null;
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('modal-input').addEventListener('input', e => {
+    const currentName = getNameFromURL();
+    const matches = e.target.value.trim().toLowerCase() === currentName.toLowerCase();
+    document.getElementById('modal-confirm-btn').classList.toggle('enabled', matches);
+    document.getElementById('modal-error').classList.remove('show');
+  });
+  document.getElementById('modal-overlay').addEventListener('click', e => {
+    if (e.target === document.getElementById('modal-overlay')) closeModal();
+  });
+});
+
+async function confirmDelete() {
+  const currentName = getNameFromURL();
+  const input = document.getElementById('modal-input').value.trim();
+  if (input.toLowerCase() !== currentName.toLowerCase()) {
+    document.getElementById('modal-error').classList.add('show');
+    return;
+  }
+  if (!pendingDeleteId) return;
+
+  const btn = document.getElementById('modal-confirm-btn');
+  btn.textContent = 'Deleting…';
+  btn.style.opacity = '0.6';
+
+  try {
+    const res = await fetch('/api/delete', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: pendingDeleteId, name: currentName })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      closeModal();
+      // Remove row from DOM instantly
+      const rows = document.querySelectorAll('.workout-row');
+      rows.forEach(row => {
+        if (row.querySelector('.delete-btn') && 
+            row.querySelector('.delete-btn').getAttribute('onclick').includes(pendingDeleteId)) {
+          row.remove();
+        }
+      });
+      // Reload to update stats
+      fetchWorkouts(currentName).then(workouts => render(currentName, workouts));
+    } else {
+      document.getElementById('modal-error').textContent = data.error || 'Failed to delete';
+      document.getElementById('modal-error').classList.add('show');
+      btn.textContent = 'Delete';
+      btn.style.opacity = '';
+    }
+  } catch(e) {
+    document.getElementById('modal-error').textContent = 'Network error — try again';
+    document.getElementById('modal-error').classList.add('show');
+    btn.textContent = 'Delete';
+    btn.style.opacity = '';
+  }
 }
 
 // Init
