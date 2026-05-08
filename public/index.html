@@ -24,8 +24,7 @@
   .field + .field { border-top: 0.5px solid var(--border); }
   .field label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-3); }
   .field select, .field input { font-size: 17px; font-weight: 500; color: var(--text); background: transparent; border: none; outline: none; width: 100%; appearance: none; -webkit-appearance: none; font-family: inherit; }
-  .field input[type="date"] { color: var(--text-2); }
-  .field input[type="date"]::-webkit-calendar-picker-indicator { opacity: 0.4; }
+
   .field select option { background: var(--surface); color: var(--text); }
   .select-wrap { position: relative; }
   .select-wrap::after { content: ''; position: absolute; right: 0; top: 50%; transform: translateY(-50%); width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 6px solid var(--text-3); pointer-events: none; }
@@ -106,14 +105,7 @@
       </div>
     </div>
   </div>
-  <div>
-    <div class="section-label" style="margin-bottom:8px">Date <span class="optional-tag">optional · defaults to today</span></div>
-    <div class="card">
-      <div class="field">
-        <input type="date" id="log-date" min="2026-05-01" max="2026-05-31" />
-      </div>
-    </div>
-  </div>
+
   <button class="submit-btn" id="submit-btn" onclick="submitWorkout()">Log workout</button>
 </div>
 <div class="toast" id="toast"></div>
@@ -128,7 +120,7 @@
     if (!selectedActivity) { showToast('Pick an activity'); return; }
     const btn = document.getElementById('submit-btn');
     btn.disabled = true; btn.textContent = 'Logging…';
-    const date = document.getElementById('log-date').value || new Date().toISOString().split('T')[0];
+    const date = new Date().toISOString().split('T')[0];
     try {
       const res = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, activity: selectedActivity, mins: duration, date }) });
       const data = await res.json();
