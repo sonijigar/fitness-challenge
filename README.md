@@ -1,4 +1,4 @@
-# 🏋️ May Challenge
+# 🏋️ Fitness Challenge
 
 A group fitness tracker for 10 friends — log workouts, track collective progress toward 250 hours in May 2026.
 
