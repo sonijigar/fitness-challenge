@@ -106,6 +106,17 @@
     </div>
   </div>
 
+  <div>
+    <div class="section-label" style="margin-bottom:8px">Date <span class="optional-tag">optional · defaults to today</span></div>
+    <div class="card">
+      <div class="field">
+        <label>Backfill a previous date?</label>
+        <select id="log-date">
+          <option value="">Today</option>
+        </select>
+      </div>
+    </div>
+  </div>
   <button class="submit-btn" id="submit-btn" onclick="submitWorkout()">Log workout</button>
 </div>
 <div class="toast" id="toast"></div>
@@ -120,16 +131,31 @@
     if (!selectedActivity) { showToast('Pick an activity'); return; }
     const btn = document.getElementById('submit-btn');
     btn.disabled = true; btn.textContent = 'Logging…';
-    const date = new Date().toISOString().split('T')[0];
+    const date = document.getElementById('log-date').value || new Date().toISOString().split('T')[0];
     try {
       const res = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, activity: selectedActivity, mins: duration, date }) });
       const data = await res.json();
-      if (res.ok) { showToast('Logged! ' + duration + ' min of ' + selectedActivity); selectedActivity = null; duration = 45; document.querySelectorAll('.act-btn').forEach(b => b.classList.remove('selected')); document.getElementById('dur-num').textContent = 45; document.getElementById('name-select').value = ''; document.getElementById('log-date').value = ''; }
+      if (res.ok) { showToast('Logged! ' + duration + ' min of ' + selectedActivity); selectedActivity = null; duration = 45; document.querySelectorAll('.act-btn').forEach(b => b.classList.remove('selected')); document.getElementById('dur-num').textContent = 45; document.getElementById('name-select').value = ''; document.getElementById('log-date').value = ''; document.getElementById('log-date').value = ''; }
       else { showToast(data.error || 'Something went wrong'); }
     } catch(e) { showToast('Network error — try again'); }
     btn.disabled = false; btn.textContent = 'Log workout';
   }
   function showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(t._timer); t._timer = setTimeout(() => t.classList.remove('show'), 3000); }
+  // Populate date dropdown with past May 2026 dates
+  const dateSelect = document.getElementById('log-date');
+  const today = new Date();
+  const todayStr = today.toISOString().split('T')[0];
+  for (let d = 1; d <= 31; d++) {
+    const date = new Date(2026, 4, d);
+    const dateStr = date.toISOString().split('T')[0];
+    if (dateStr >= todayStr) break;
+    const label = date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+    const opt = document.createElement('option');
+    opt.value = dateStr;
+    opt.textContent = label;
+    dateSelect.appendChild(opt);
+  }
+
   const saved = localStorage.getItem('may-challenge-name');
   if (saved) document.getElementById('name-select').value = saved;
   document.getElementById('name-select').addEventListener('change', e => { if (e.target.value) localStorage.setItem('may-challenge-name', e.target.value); });
