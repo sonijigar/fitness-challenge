@@ -65,8 +65,9 @@
   /* LEADERBOARD */
   .card { background: var(--surface); border: 0.5px solid var(--border); border-radius: 16px; padding: 20px; }
   .card-title { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-3); margin-bottom: 16px; }
-  .member-row { display: flex; align-items: center; gap: 12px; padding: 8px 0; border-bottom: 0.5px solid var(--border); }
-  .member-row:last-child { border-bottom: none; padding-bottom: 0; }
+  .member-row { display: flex; align-items: center; gap: 12px; padding: 8px; border-bottom: 0.5px solid var(--border); text-decoration: none; cursor: pointer; transition: background 0.15s; border-radius: 8px; margin: 0 -8px; }
+  .member-row:hover { background: var(--surface-2); }
+  .member-row:last-child { border-bottom: none; }
   .member-rank { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text-3); width: 18px; flex-shrink: 0; }
   .member-rank.gold { color: #f0c040; }
   .member-rank.silver { color: #a0a0a0; }
@@ -287,7 +288,7 @@ function render(workouts) {
     <div class="card">
       <div class="card-title">Squad leaderboard</div>
       ${memberData.map((m, i) => `
-        <div class="member-row">
+        <a class="member-row" href="/history.html?name=${encodeURIComponent(m.name)}">
           <div class="member-rank ${i===0?'gold':i===1?'silver':i===2?'bronze':''}">${i===0?'①':i===1?'②':i===2?'③':`${i+1}`}</div>
           <div class="member-avatar" style="background:${m.color[0]};color:${m.color[1]}">${m.name.slice(0,2).toUpperCase()}</div>
           <div class="member-info">
@@ -300,7 +301,7 @@ function render(workouts) {
             </div>
           </div>
           <div class="member-hrs-num">${m.hrs.toFixed(1)}h</div>
-        </div>
+        </a>
       `).join('')}
     </div>
   `;

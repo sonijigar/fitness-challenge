@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>May Challenge · History</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --green: #1D9E75; --green-2: #E1F5EE; --green-3: #0a5c44;
+    --bg: #0e0e0c; --surface: #161614; --surface-2: #1e1e1b;
+    --text: #f0f0ee; --text-2: #8a8a84; --text-3: #4a4a46;
+    --border: rgba(255,255,255,0.07);
+    --red: #e05555; --yellow: #e0a855; --blue: #5580e0;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { font-size: 16px; }
+  body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+  .page { max-width: 900px; margin: 0 auto; padding: 32px 20px 60px; }
+
+  /* HEADER */
+  .header { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 36px; flex-wrap: wrap; gap: 12px; }
+  .header-left h1 { font-family: 'Syne', sans-serif; font-size: clamp(28px, 5vw, 42px); font-weight: 800; letter-spacing: -1.5px; line-height: 1; color: var(--text); }
+  .header-left h1 span { color: var(--green); }
+  .header-left p { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--text-2); margin-top: 6px; letter-spacing: 0.05em; }
+
+  /* NAV */
+  .nav { display: flex; gap: 12px; margin-bottom: 28px; }
+  .nav a { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--text-3); text-decoration: none; letter-spacing: 0.05em; padding: 6px 12px; border: 0.5px solid var(--border); border-radius: 999px; transition: all 0.15s; }
+  .nav a:hover { color: var(--text); border-color: var(--text-3); }
+  .nav a.active { color: var(--green); border-color: var(--green); }
+
+  /* HERO */
+  .hero { background: var(--surface); border: 0.5px solid var(--border); border-radius: 20px; padding: 28px 28px 24px; margin-bottom: 16px; position: relative; overflow: hidden; }
+  .hero::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--green), transparent); }
+  .hero-top { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; }
+  .hero-avatar { width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'DM Mono', monospace; font-size: 16px; font-weight: 500; flex-shrink: 0; }
+  .hero-name { font-family: 'Syne', sans-serif; font-size: clamp(28px, 5vw, 40px); font-weight: 800; letter-spacing: -1.5px; line-height: 1; color: var(--text); }
+  .hero-nums { display: flex; align-items: flex-end; gap: 8px; margin-bottom: 20px; }
+  .hero-current { font-family: 'Syne', sans-serif; font-size: clamp(48px, 10vw, 72px); font-weight: 800; letter-spacing: -3px; line-height: 1; color: var(--text); }
+  .hero-unit { font-size: 14px; color: var(--text-2); margin-bottom: 10px; margin-left: 4px; }
+  .hero-slash { font-family: 'DM Mono', monospace; font-size: 20px; color: var(--text-3); margin-bottom: 10px; }
+  .hero-goal { font-family: 'DM Mono', monospace; font-size: 18px; color: var(--text-2); margin-bottom: 10px; }
+  .hero-bar-bg { height: 6px; background: var(--surface-2); border-radius: 999px; overflow: hidden; margin-bottom: 20px; }
+  .hero-bar-fill { height: 6px; background: var(--green); border-radius: 999px; transition: width 1s cubic-bezier(0.34, 1.56, 0.64, 1); }
+  .hero-meta { display: flex; gap: 24px; flex-wrap: wrap; }
+  .hero-meta-item { display: flex; flex-direction: column; gap: 2px; }
+  .hero-meta-label { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text-3); letter-spacing: 0.08em; text-transform: uppercase; }
+  .hero-meta-val { font-family: 'DM Mono', monospace; font-size: 16px; color: var(--text); font-weight: 500; }
+  .hero-meta-val.green { color: var(--green); }
+
+  /* CARDS */
+  .card { background: var(--surface); border: 0.5px solid var(--border); border-radius: 16px; padding: 20px; margin-bottom: 16px; }
+  .card-title { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-3); margin-bottom: 16px; }
+
+  /* STATS ROW */
+  .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 16px; }
+  .stat-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: 14px; padding: 16px 18px; }
+  .stat-label { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text-3); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 6px; }
+  .stat-val { font-family: 'Syne', sans-serif; font-size: 26px; font-weight: 800; letter-spacing: -1px; color: var(--text); line-height: 1; }
+  .stat-sub { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text-3); margin-top: 4px; }
+
+  /* WORKOUT LIST */
+  .workout-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 0.5px solid var(--border); }
+  .workout-row:last-child { border-bottom: none; padding-bottom: 0; }
+  .workout-icon { font-size: 20px; width: 32px; flex-shrink: 0; text-align: center; }
+  .workout-info { flex: 1; min-width: 0; }
+  .workout-activity { font-size: 14px; font-weight: 500; color: var(--text); }
+  .workout-date { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text-3); margin-top: 2px; }
+  .workout-mins { font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 500; color: var(--green); flex-shrink: 0; }
+
+  /* ACTIVITY BREAKDOWN */
+  .activity-row { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 0.5px solid var(--border); }
+  .activity-row:last-child { border-bottom: none; }
+  .activity-icon { font-size: 18px; width: 28px; flex-shrink: 0; }
+  .activity-name { font-size: 13px; color: var(--text); flex: 1; }
+  .activity-bar-wrap { width: 80px; }
+  .activity-bar-bg { height: 3px; background: var(--surface-2); border-radius: 999px; overflow: hidden; }
+  .activity-bar-fill { height: 3px; background: var(--green); border-radius: 999px; }
+  .activity-hrs { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--text-2); flex-shrink: 0; width: 38px; text-align: right; }
+
+  /* TWO COL */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+  @media(max-width: 600px) { .two-col { grid-template-columns: 1fr; } }
+
+  /* LOADING */
+  .loading { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 60vh; gap: 12px; }
+  .loading-spinner { width: 32px; height: 32px; border: 2px solid var(--border); border-top-color: var(--green); border-radius: 50%; animation: spin 0.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading p { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--text-3); }
+
+  .error-state { text-align: center; padding: 60px 20px; }
+  .error-state p { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--text-3); }
+  .error-state a { color: var(--green); text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="header">
+    <div class="header-left">
+      <h1>MAY <span>CHALLENGE</span></h1>
+      <p>PERSONAL HISTORY · MAY 2026</p>
+    </div>
+  </div>
+
+  <div class="nav">
+    <a href="/index.html">↑ Log workout</a>
+    <a href="/dashboard.html">← Squad</a>
+    <a href="#" class="active" id="nav-name">…</a>
+  </div>
+
+  <div id="main-content">
+    <div class="loading">
+      <div class="loading-spinner"></div>
+      <p>Loading history...</p>
+    </div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://teyafvhzoznsjknhinrd.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_BwZtfeVzUS_hoY-3L75T1w_CfFntJYM';
+const GOAL_MINS = 250 * 60;
+const MEMBERS = ['Aashka','Heli','Himani','Jigar','Karan','Kashyap','Khushboo','Malhar','Raghav','Vishrut'];
+const COLORS = [
+  ['#0d3d2c','#4ade80'],['#1a2a4a','#60a5fa'],['#3d2a0d','#fbbf24'],
+  ['#3d0d2a','#f472b6'],['#1a3d1a','#86efac'],['#2a1a3d','#a78bfa'],
+  ['#3d1a0d','#fb923c'],['#2a2a1a','#d4d4aa'],['#3d0d0d','#f87171'],['#0d2a3d','#38bdf8']
+];
+const ACT_ICONS = {Running:'🏃',Hiking:'🥾',Lifting:'🏋️',Cycling:'🚴',Walking:'🚶',HIIT:'💪',Swimming:'🏊',Yoga:'🧘',Volleyball:'🏐',Climbing:'🧗',Other:'⚡'};
+const ACT_COLORS = ['#1D9E75','#5580e0','#e0a855','#e05555','#a855e0','#55e0c8','#e08055','#80e055','#e055c8','#5580e0','#e0a855'];
+
+function getNameFromURL() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get('name');
+}
+
+async function fetchWorkouts(name) {
+  const encoded = encodeURIComponent(name);
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/workouts?select=*&name=eq.${encoded}&order=date.desc,created_at.desc`, {
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+  });
+  return res.json();
+}
+
+function formatDate(dateStr) {
+  const d = new Date(dateStr + 'T12:00:00');
+  return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+}
+
+function render(name, workouts) {
+  const memberIdx = MEMBERS.indexOf(name);
+  const color = COLORS[memberIdx] || COLORS[0];
+  const initials = name.slice(0, 2).toUpperCase();
+  const perPersonGoal = GOAL_MINS / MEMBERS.length;
+
+  const totalMins = workouts.reduce((s, w) => s + w.mins, 0);
+  const totalHrs = totalMins / 60;
+  const pct = Math.min(100, (totalMins / perPersonGoal) * 100);
+  const sessions = workouts.length;
+  const avgMins = sessions > 0 ? Math.round(totalMins / sessions) : 0;
+  const longestWorkout = sessions > 0 ? workouts.reduce((max, w) => w.mins > max.mins ? w : max, workouts[0]) : null;
+
+  // Favorite activity
+  const actCount = {};
+  workouts.forEach(w => { actCount[w.activity] = (actCount[w.activity] || 0) + w.mins; });
+  const favActivity = Object.entries(actCount).sort((a, b) => b[1] - a[1])[0];
+  const actSorted = Object.entries(actCount).sort((a, b) => b[1] - a[1]);
+  const maxActMins = actSorted[0]?.[1] || 1;
+
+  // Update nav
+  document.getElementById('nav-name').textContent = name;
+  document.title = `May Challenge · ${name}`;
+
+  document.getElementById('main-content').innerHTML = `
+    <!-- HERO -->
+    <div class="hero">
+      <div class="hero-top">
+        <div class="hero-avatar" style="background:${color[0]};color:${color[1]}">${initials}</div>
+        <div class="hero-name">${name}</div>
+      </div>
+      <div class="hero-nums">
+        <div class="hero-current">${totalHrs.toFixed(1)}</div>
+        <div class="hero-unit">hrs</div>
+        <div class="hero-slash">/</div>
+        <div class="hero-goal">${(perPersonGoal/60).toFixed(0)}</div>
+      </div>
+      <div class="hero-bar-bg">
+        <div class="hero-bar-fill" style="width:${pct}%"></div>
+      </div>
+      <div class="hero-meta">
+        <div class="hero-meta-item">
+          <span class="hero-meta-label">Progress</span>
+          <span class="hero-meta-val green">${pct.toFixed(0)}%</span>
+        </div>
+        <div class="hero-meta-item">
+          <span class="hero-meta-label">Sessions</span>
+          <span class="hero-meta-val">${sessions}</span>
+        </div>
+        <div class="hero-meta-item">
+          <span class="hero-meta-label">Avg session</span>
+          <span class="hero-meta-val">${avgMins}m</span>
+        </div>
+        ${favActivity ? `
+        <div class="hero-meta-item">
+          <span class="hero-meta-label">Top activity</span>
+          <span class="hero-meta-val">${ACT_ICONS[favActivity[0]] || '⚡'} ${favActivity[0]}</span>
+        </div>` : ''}
+        ${longestWorkout ? `
+        <div class="hero-meta-item">
+          <span class="hero-meta-label">Longest</span>
+          <span class="hero-meta-val">${longestWorkout.mins}m</span>
+        </div>` : ''}
+      </div>
+    </div>
+
+    ${sessions === 0 ? `
+      <div class="error-state">
+        <p>No workouts logged yet.<br><a href="/index.html">Log your first workout →</a></p>
+      </div>
+    ` : `
+      <!-- ACTIVITY BREAKDOWN + STATS -->
+      <div class="two-col">
+        <div class="card">
+          <div class="card-title">By activity</div>
+          ${actSorted.map(([act, mins], i) => `
+            <div class="activity-row">
+              <div class="activity-icon">${ACT_ICONS[act] || '⚡'}</div>
+              <div class="activity-name">${act}</div>
+              <div class="activity-bar-wrap">
+                <div class="activity-bar-bg">
+                  <div class="activity-bar-fill" style="width:${(mins/maxActMins)*100}%;background:${ACT_COLORS[i % ACT_COLORS.length]}"></div>
+                </div>
+              </div>
+              <div class="activity-hrs">${(mins/60).toFixed(1)}h</div>
+            </div>
+          `).join('')}
+        </div>
+
+        <div class="stats-grid" style="display:flex;flex-direction:column;gap:12px">
+          <div class="stat-card">
+            <div class="stat-label">Total hours</div>
+            <div class="stat-val">${totalHrs.toFixed(1)}</div>
+            <div class="stat-sub">of ${(perPersonGoal/60).toFixed(0)}h personal goal</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Sessions</div>
+            <div class="stat-val">${sessions}</div>
+            <div class="stat-sub">${avgMins} min avg duration</div>
+          </div>
+          ${longestWorkout ? `
+          <div class="stat-card">
+            <div class="stat-label">Longest session</div>
+            <div class="stat-val">${longestWorkout.mins}m</div>
+            <div class="stat-sub">${ACT_ICONS[longestWorkout.activity] || '⚡'} ${longestWorkout.activity}</div>
+          </div>` : ''}
+        </div>
+      </div>
+
+      <!-- WORKOUT LIST -->
+      <div class="card">
+        <div class="card-title">All workouts · ${sessions} total</div>
+        ${workouts.map(w => `
+          <div class="workout-row">
+            <div class="workout-icon">${ACT_ICONS[w.activity] || '⚡'}</div>
+            <div class="workout-info">
+              <div class="workout-activity">${w.activity}</div>
+              <div class="workout-date">${formatDate(w.date)}</div>
+            </div>
+            <div class="workout-mins">${w.mins}m</div>
+          </div>
+        `).join('')}
+      </div>
+    `}
+  `;
+}
+
+// Init
+const name = getNameFromURL();
+if (!name || !MEMBERS.includes(name)) {
+  document.getElementById('main-content').innerHTML = `
+    <div class="error-state">
+      <p>Member not found. <a href="/dashboard.html">← Back to dashboard</a></p>
+    </div>
+  `;
+} else {
+  fetchWorkouts(name).then(workouts => render(name, workouts)).catch(e => {
+    document.getElementById('main-content').innerHTML = `
+      <div class="error-state">
+        <p>Failed to load data. <a href="/dashboard.html">← Back to dashboard</a></p>
+      </div>
+    `;
+    console.error(e);
+  });
+}
+</script>
+</body>
+</html>
