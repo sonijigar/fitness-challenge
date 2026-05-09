@@ -1,7 +1,4 @@
 {
-  "name": "may-challenge",
-  "version": "1.0.0",
-  "dependencies": {
-    "@supabase/supabase-js": "^2.39.0"
-  }
+  "name": "fitness-challenge",
+  "version": "1.0.0"
 }
