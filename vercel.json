@@ -1,5 +1,6 @@
 {
   "rewrites": [
-    { "source": "/api/log", "destination": "/api/log" }
+    { "source": "/api/log", "destination": "/api/log" },
+    { "source": "/api/delete", "destination": "/api/delete" }
   ]
 }
