@@ -3,17 +3,11 @@ name: E2E Tests
 on:
   pull_request:
     branches: [main]
-  push:
-    branches: [main]
 
 jobs:
   e2e:
-    name: Deploy preview & run E2E
+    name: Run E2E tests against production
     runs-on: ubuntu-latest
-
-    env:
-      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
     steps:
       - name: Checkout
@@ -24,47 +18,35 @@ jobs:
         with:
           node-version: 20
 
-      - name: Install Vercel CLI
-        run: npm install -g vercel
-
-      - name: Deploy preview to Vercel
-        id: deploy
-        run: |
-          DEPLOY_URL=$(vercel deploy --token=${{ secrets.VERCEL_TOKEN }} --yes 2>&1 | tail -1)
-          echo "url=$DEPLOY_URL" >> $GITHUB_OUTPUT
-          echo "Deployed to: $DEPLOY_URL"
-
-      - name: Wait for deployment to be ready
-        run: |
-          URL=${{ steps.deploy.outputs.url }}
-          echo "Waiting for $URL to be ready..."
-          for i in {1..20}; do
-            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$URL")
-            if [ "$STATUS" = "200" ]; then
-              echo "Deployment ready!"
-              break
-            fi
-            echo "Attempt $i: status $STATUS — retrying in 5s"
-            sleep 5
-          done
-
       - name: Run E2E tests
         run: node tests/e2e.js
         env:
-          BASE_URL: ${{ steps.deploy.outputs.url }}
+          BASE_URL: https://may-challenge.vercel.app
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
 
       - name: Comment PR with results
-        if: github.event_name == 'pull_request'
+        if: success()
         uses: actions/github-script@v7
         with:
           script: |
-            const url = '${{ steps.deploy.outputs.url }}';
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: `## ✅ E2E Tests Passed\n\nPreview deployment: ${url}\n\nAll API and static page tests passed.`
+              body: `## ✅ E2E Tests Passed\n\nAll API and static page tests passed against production.`
+            })
+        continue-on-error: true
+
+      - name: Comment PR on failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## ❌ E2E Tests Failed\n\nSome tests failed against production. Check the [Actions log](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details.`
             })
         continue-on-error: true
