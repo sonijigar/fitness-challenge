@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>May Challenge · Bulk Log</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --green: #1D9E75; --green-light: #E1F5EE; --green-dark: #0F6E56;
+    --bg: #f7f7f5; --surface: #ffffff; --text: #1a1a18; --text-2: #6b6b67;
+    --text-3: #a5a5a0; --border: rgba(0,0,0,0.1); --radius: 14px; --radius-sm: 10px;
+    --red: #e05555; --red-light: #FCEBEB; --yellow: #e0a855; --yellow-light: #FAEEDA;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #141412; --surface: #1f1f1d; --text: #f0f0ee; --text-2: #9a9a96;
+      --text-3: #5a5a57; --border: rgba(255,255,255,0.1); --green-light: #0d3d2c;
+      --red-light: #3d0d0d; --yellow-light: #3d2a0d;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+  body { display: flex; flex-direction: column; align-items: center; padding: env(safe-area-inset-top, 20px) 16px env(safe-area-inset-bottom, 40px); }
+  .wrap { width: 100%; max-width: 600px; display: flex; flex-direction: column; gap: 16px; padding-top: 12px; }
+
+  .header { text-align: center; padding: 8px 0 4px; }
+  .header-icon { width: 52px; height: 52px; background: var(--green); border-radius: 14px; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; }
+  .header-icon svg { width: 28px; height: 28px; fill: none; stroke: white; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .header h1 { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; letter-spacing: -0.5px; }
+  .header p { font-size: 14px; color: var(--text-2); margin-top: 4px; }
+
+  .nav { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+  .nav a { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text-3); text-decoration: none; padding: 5px 10px; border: 0.5px solid var(--border); border-radius: 999px; }
+  .nav a.active { color: var(--green); border-color: var(--green); }
+
+  .card { background: var(--surface); border-radius: var(--radius); border: 0.5px solid var(--border); overflow: hidden; }
+  .field { padding: 12px 16px; display: flex; flex-direction: column; gap: 5px; }
+  .field label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-3); }
+  .field select { font-size: 16px; font-weight: 500; color: var(--text); background: transparent; border: none; outline: none; width: 100%; appearance: none; -webkit-appearance: none; font-family: inherit; }
+  .select-wrap { position: relative; }
+  .select-wrap::after { content: ''; position: absolute; right: 0; top: 50%; transform: translateY(-50%); width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 6px solid var(--text-3); pointer-events: none; }
+
+  .tabs { display: flex; background: var(--surface); border-radius: var(--radius); border: 0.5px solid var(--border); overflow: hidden; }
+  .tab-btn { flex: 1; padding: 13px; font-size: 14px; font-weight: 500; background: none; border: none; cursor: pointer; color: var(--text-3); font-family: inherit; transition: all 0.15s; }
+  .tab-btn.active { background: var(--green); color: white; }
+  .tab-content { display: none; }
+  .tab-content.active { display: flex; flex-direction: column; gap: 12px; }
+
+  .section-label { font-size: 13px; font-weight: 600; color: var(--text-2); padding: 0 4px; }
+  .section-hint { font-size: 12px; color: var(--text-3); padding: 0 4px; }
+
+  /* MANUAL ROWS */
+  .rows-wrap { display: flex; flex-direction: column; gap: 8px; }
+  .workout-row-entry { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-sm); padding: 10px 12px; display: grid; grid-template-columns: 1fr 1fr 72px 28px; gap: 8px; align-items: end; }
+  .row-field { display: flex; flex-direction: column; gap: 3px; }
+  .row-field label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-3); }
+  .row-field select, .row-field input { font-size: 14px; font-weight: 500; color: var(--text); background: transparent; border: none; outline: none; width: 100%; appearance: none; -webkit-appearance: none; font-family: inherit; border-bottom: 0.5px solid var(--border); padding-bottom: 3px; }
+  .row-field input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
+  .row-field input::placeholder { color: var(--text-3); font-weight: 400; }
+  .remove-btn { background: none; border: none; color: var(--text-3); cursor: pointer; font-size: 16px; padding: 4px; border-radius: 6px; transition: all 0.15s; line-height: 1; align-self: center; }
+  .remove-btn:hover { color: var(--red); }
+  .add-row-btn { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 11px; background: var(--surface); border: 1.5px dashed var(--border); border-radius: var(--radius-sm); cursor: pointer; font-size: 13px; color: var(--text-3); font-family: inherit; transition: all 0.15s; width: 100%; }
+  .add-row-btn:hover { border-color: var(--green); color: var(--green); }
+
+  /* CSV */
+  .csv-area { width: 100%; min-height: 160px; font-family: 'DM Mono', monospace; font-size: 13px; color: var(--text); background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-sm); padding: 12px; resize: vertical; outline: none; line-height: 1.8; }
+  .csv-area:focus { border-color: var(--green); }
+  .csv-hint { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text-3); line-height: 1.8; padding: 0 4px; }
+  .csv-hint span { color: var(--green); }
+
+  /* PREVIEW TABLE */
+  .preview-wrap { border-radius: var(--radius-sm); border: 0.5px solid var(--border); overflow: hidden; }
+  .preview-header { display: grid; grid-template-columns: 90px 1fr 60px 80px; gap: 8px; padding: 8px 12px; background: var(--bg); border-bottom: 0.5px solid var(--border); }
+  .preview-header span { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-3); }
+  .preview-row { display: grid; grid-template-columns: 90px 1fr 60px 80px; gap: 8px; padding: 9px 12px; border-bottom: 0.5px solid var(--border); align-items: center; background: var(--surface); }
+  .preview-row:last-child { border-bottom: none; }
+  .preview-row.error { background: var(--red-light); }
+  .preview-row.warning { background: var(--yellow-light); }
+  .preview-cell { font-size: 13px; color: var(--text); }
+  .preview-cell.dim { color: var(--text-3); font-family: 'DM Mono', monospace; font-size: 12px; }
+  .preview-badge { font-family: 'DM Mono', monospace; font-size: 10px; padding: 2px 7px; border-radius: 999px; font-weight: 500; }
+  .badge-ok { background: var(--green-light); color: var(--green-dark); }
+  .badge-warn { background: var(--yellow-light); color: #854F0B; }
+  .badge-err { background: var(--red-light); color: var(--red); }
+
+  /* BUTTONS */
+  .submit-btn { width: 100%; padding: 15px; font-size: 16px; font-weight: 600; background: var(--green); color: white; border: none; border-radius: var(--radius); cursor: pointer; transition: all 0.15s; font-family: inherit; }
+  .submit-btn:active { transform: scale(0.98); opacity: 0.9; }
+  .submit-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+  .parse-btn { width: 100%; padding: 11px; font-size: 14px; font-weight: 500; background: transparent; color: var(--green); border: 1.5px solid var(--green); border-radius: var(--radius-sm); cursor: pointer; font-family: inherit; transition: all 0.15s; }
+  .parse-btn:hover { background: var(--green-light); }
+
+  /* RESULTS */
+  .results-wrap { display: flex; flex-direction: column; gap: 6px; }
+  .result-row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: var(--radius-sm); font-size: 13px; }
+  .result-row.success { background: var(--green-light); }
+  .result-row.fail { background: var(--red-light); }
+  .result-icon { font-size: 15px; flex-shrink: 0; }
+  .result-text { flex: 1; color: var(--text); }
+  .result-reason { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--red); }
+  .summary-bar { display: flex; gap: 12px; padding: 12px 16px; background: var(--surface); border-radius: var(--radius-sm); border: 0.5px solid var(--border); }
+  .summary-item { display: flex; flex-direction: column; gap: 2px; }
+  .summary-num { font-family: 'Syne', sans-serif; font-size: 24px; font-weight: 800; letter-spacing: -1px; }
+  .summary-num.green { color: var(--green); }
+  .summary-num.red { color: var(--red); }
+  .summary-label { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.06em; }
+
+  .toast { position: fixed; bottom: calc(env(safe-area-inset-bottom, 0px) + 24px); left: 50%; transform: translateX(-50%) translateY(80px); background: var(--text); color: var(--bg); font-size: 14px; font-weight: 500; padding: 10px 20px; border-radius: 999px; transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1); white-space: nowrap; z-index: 100; }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <div class="header-icon"><svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg></div>
+    <h1>Bulk Log</h1>
+    <p>Log multiple workouts at once</p>
+  </div>
+
+  <div class="nav">
+    <a href="/index.html">↑ Log workout</a>
+    <a href="/dashboard.html">Dashboard</a>
+    <a href="/bulk.html" class="active">Bulk log</a>
+  </div>
+
+  <!-- NAME -->
+  <div>
+    <div class="section-label" style="margin-bottom:8px">Who's logging?</div>
+    <div class="card">
+      <div class="field">
+        <label>Your name</label>
+        <div class="select-wrap">
+          <select id="name-select">
+            <option value="">Select name…</option>
+            <option>Aashka</option><option>Heli</option><option>Himani</option>
+            <option>Jigar</option><option>Karan</option><option>Kashyap</option>
+            <option>Khushboo</option><option>Malhar</option><option>Raghav</option>
+            <option>Vishrut</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('manual')">✏️ Manual entry</button>
+    <button class="tab-btn" onclick="switchTab('csv')">📋 Paste / CSV</button>
+  </div>
+
+  <!-- MANUAL TAB -->
+  <div class="tab-content active" id="tab-manual">
+    <div>
+      <div class="section-label" style="margin-bottom:8px">Workouts</div>
+      <div class="rows-wrap" id="rows-wrap"></div>
+      <button class="add-row-btn" onclick="addRow()" style="margin-top:8px">+ Add workout</button>
+    </div>
+    <button class="submit-btn" id="manual-submit-btn" onclick="submitManual()">Log all workouts</button>
+  </div>
+
+  <!-- CSV TAB -->
+  <div class="tab-content" id="tab-csv">
+    <div>
+      <div class="section-label" style="margin-bottom:6px">Paste your workouts</div>
+      <div class="csv-hint" style="margin-bottom:8px">
+        One workout per line. Format: <span>date, activity, minutes</span><br>
+        Examples:<br>
+        <span>May 5, running, 45</span><br>
+        <span>6/5, gym, 60</span><br>
+        <span>2026-05-07, went for a hike, 90</span><br>
+        <span>Monday, weights, 45</span>
+      </div>
+      <textarea class="csv-area" id="csv-input" placeholder="May 5, running, 45&#10;May 6, gym, 60&#10;May 7, hiking, 90"></textarea>
+    </div>
+    <button class="parse-btn" onclick="parseCSV()">Preview →</button>
+    <div id="csv-preview" style="display:none">
+      <div class="section-label" style="margin-bottom:8px">Preview</div>
+      <div class="preview-wrap">
+        <div class="preview-header">
+          <span>Date</span><span>Activity</span><span>Mins</span><span>Status</span>
+        </div>
+        <div id="preview-rows"></div>
+      </div>
+    </div>
+    <button class="submit-btn" id="csv-submit-btn" onclick="submitCSV()" style="display:none">Log all valid workouts</button>
+  </div>
+
+  <!-- RESULTS -->
+  <div id="results-section" style="display:none">
+    <div class="section-label" style="margin-bottom:8px">Results</div>
+    <div class="summary-bar" id="summary-bar"></div>
+    <div class="results-wrap" id="results-wrap" style="margin-top:10px"></div>
+    <button class="submit-btn" onclick="resetAll()" style="margin-top:8px;background:var(--surface);color:var(--green);border:1.5px solid var(--green)">Log more workouts</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const ACTIVITIES = ['Running','Hiking','Lifting','Cycling','Walking','HIIT','Swimming','Yoga','Volleyball','Climbing','Other'];
+const ACT_ICONS = {Running:'🏃',Hiking:'🥾',Lifting:'🏋️',Cycling:'🚴',Walking:'🚶',HIIT:'💪',Swimming:'🏊',Yoga:'🧘',Volleyball:'🏐',Climbing:'🧗',Other:'⚡'};
+
+// Fuzzy activity matching
+const ACT_MAP = {
+  running: 'Running', run: 'Running', runs: 'Running', jog: 'Running', jogging: 'Running', jogs: 'Running',
+  hiking: 'Hiking', hike: 'Hiking', hikes: 'Hiking', trail: 'Hiking', trekking: 'Hiking', trek: 'Hiking',
+  lifting: 'Lifting', lift: 'Lifting', gym: 'Lifting', weights: 'Lifting', strength: 'Lifting',
+  'strength training': 'Lifting', 'weight training': 'Lifting', 'went to gym': 'Lifting',
+  cycling: 'Cycling', cycle: 'Cycling', bike: 'Cycling', biking: 'Cycling', spin: 'Cycling', spinning: 'Cycling',
+  walking: 'Walking', walk: 'Walking', walks: 'Walking', steps: 'Walking', stroll: 'Walking',
+  hiit: 'HIIT', interval: 'HIIT', intervals: 'HIIT', cardio: 'HIIT', 'circuit training': 'HIIT',
+  swimming: 'Swimming', swim: 'Swimming', swam: 'Swimming', pool: 'Swimming',
+  yoga: 'Yoga', stretch: 'Yoga', stretching: 'Yoga', flexibility: 'Yoga', meditation: 'Yoga',
+  volleyball: 'Volleyball', volley: 'Volleyball',
+  climbing: 'Climbing', climb: 'Climbing', bouldering: 'Climbing', boulder: 'Climbing',
+};
+
+function fuzzyActivity(input) {
+  if (!input) return null;
+  const lower = input.trim().toLowerCase();
+  if (ACT_MAP[lower]) return ACT_MAP[lower];
+  // partial match
+  for (const [key, val] of Object.entries(ACT_MAP)) {
+    if (lower.includes(key) || key.includes(lower)) return val;
+  }
+  // exact match against activities
+  const exact = ACTIVITIES.find(a => a.toLowerCase() === lower);
+  if (exact) return exact;
+  return null;
+}
+
+// Date parsing — May 2026 only
+function parseDate(input) {
+  if (!input) return null;
+  const str = input.trim().toLowerCase();
+  const today = new Date();
+  const todayStr = today.toISOString().split('T')[0];
+
+  const DAYS = { monday: 1, tuesday: 2, wednesday: 3, thursday: 4, friday: 5, saturday: 6, sunday: 0 };
+  const MONTHS = { jan: 0, feb: 1, mar: 2, apr: 3, may: 4, jun: 5, jul: 6, aug: 7, sep: 8, oct: 9, nov: 10, dec: 11 };
+
+  let date = null;
+
+  // ISO: 2026-05-05
+  if (/^\d{4}-\d{2}-\d{2}$/.test(str)) {
+    date = new Date(str + 'T12:00:00');
+  }
+  // DD/MM or MM/DD — assume day/month for this app since it's May
+  else if (/^\d{1,2}\/\d{1,2}$/.test(str)) {
+    const parts = str.split('/');
+    const a = parseInt(parts[0]), b = parseInt(parts[1]);
+    // if one part is clearly a month (<=12) and other is a day
+    if (b === 5 || b === 2026) { date = new Date(2026, 4, a, 12); } // d/m or d/yyyy
+    else if (a === 5) { date = new Date(2026, 4, b, 12); } // m/d
+    else { date = new Date(2026, 4, a, 12); } // default: first number is day
+  }
+  // May 5 or 5 May
+  else if (/may\s+\d{1,2}/.test(str)) {
+    const m = str.match(/may\s+(\d{1,2})/);
+    if (m) date = new Date(2026, 4, parseInt(m[1]), 12);
+  }
+  else if (/\d{1,2}\s+may/.test(str)) {
+    const m = str.match(/(\d{1,2})\s+may/);
+    if (m) date = new Date(2026, 4, parseInt(m[1]), 12);
+  }
+  // Day name: Monday, last Tuesday, etc.
+  else if (DAYS[str] !== undefined || /^(last\s+)?(monday|tuesday|wednesday|thursday|friday|saturday|sunday)$/.test(str)) {
+    const dayName = str.replace('last ', '');
+    const targetDay = DAYS[dayName];
+    if (targetDay !== undefined) {
+      const d = new Date();
+      d.setHours(12, 0, 0, 0);
+      while (d.getDay() !== targetDay) d.setDate(d.getDate() - 1);
+      date = d;
+    }
+  }
+  // Plain number: "5" = May 5
+  else if (/^\d{1,2}$/.test(str)) {
+    date = new Date(2026, 4, parseInt(str), 12);
+  }
+
+  if (!date || isNaN(date.getTime())) return null;
+
+  const dateStr = date.toISOString().split('T')[0];
+
+  // Must be in May 2026
+  if (!dateStr.startsWith('2026-05')) return null;
+
+  // Must not be in the future
+  if (dateStr > todayStr) return null;
+
+  // Must be valid day
+  const day = date.getDate();
+  if (day < 1 || day > 31) return null;
+
+  return dateStr;
+}
+
+function formatDateLabel(dateStr) {
+  const d = new Date(dateStr + 'T12:00:00');
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+// ─── MANUAL TAB ──────────────────────────────────────────────────────────────
+
+let rowCount = 0;
+
+function addRow() {
+  rowCount++;
+  const id = rowCount;
+  const today = new Date();
+  const todayStr = today.toISOString().split('T')[0];
+
+  // Build past May dates
+  const dateOptions = [];
+  for (let d = 1; d <= 31; d++) {
+    const dt = new Date(2026, 4, d);
+    const ds = dt.toISOString().split('T')[0];
+    if (ds > todayStr) break;
+    const label = dt.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+    dateOptions.push(`<option value="${ds}" ${ds === todayStr ? 'selected' : ''}>${label}</option>`);
+  }
+
+  const actOptions = ACTIVITIES.map(a => `<option value="${a}">${ACT_ICONS[a]} ${a}</option>`).join('');
+
+  const div = document.createElement('div');
+  div.className = 'workout-row-entry';
+  div.id = `row-${id}`;
+  div.innerHTML = `
+    <div class="row-field">
+      <label>Date</label>
+      <select class="row-date">${dateOptions.join('')}</select>
+    </div>
+    <div class="row-field">
+      <label>Activity</label>
+      <select class="row-activity">${actOptions}</select>
+    </div>
+    <div class="row-field">
+      <label>Mins</label>
+      <input type="number" class="row-mins" placeholder="45" min="1" max="600" value="45" />
+    </div>
+    <button class="remove-btn" onclick="removeRow(${id})">✕</button>
+  `;
+  document.getElementById('rows-wrap').appendChild(div);
+}
+
+function removeRow(id) {
+  const el = document.getElementById(`row-${id}`);
+  if (el) el.remove();
+  if (document.getElementById('rows-wrap').children.length === 0) addRow();
+}
+
+async function submitManual() {
+  const name = document.getElementById('name-select').value;
+  if (!name) { showToast('Pick your name first'); return; }
+
+  const rows = document.querySelectorAll('.workout-row-entry');
+  if (!rows.length) { showToast('Add at least one workout'); return; }
+
+  const workouts = [];
+  rows.forEach(row => {
+    const date = row.querySelector('.row-date').value;
+    const activity = row.querySelector('.row-activity').value;
+    const mins = parseInt(row.querySelector('.row-mins').value);
+    if (date && activity && mins > 0) workouts.push({ date, activity, mins, label: `${activity} on ${formatDateLabel(date)}` });
+  });
+
+  if (!workouts.length) { showToast('Fill in all fields'); return; }
+
+  const btn = document.getElementById('manual-submit-btn');
+  btn.disabled = true;
+  btn.textContent = `Logging ${workouts.length} workouts…`;
+
+  await submitWorkouts(name, workouts);
+  btn.disabled = false;
+  btn.textContent = 'Log all workouts';
+}
+
+// ─── CSV TAB ─────────────────────────────────────────────────────────────────
+
+let parsedWorkouts = [];
+
+function parseCSV() {
+  const name = document.getElementById('name-select').value;
+  if (!name) { showToast('Pick your name first'); return; }
+
+  const raw = document.getElementById('csv-input').value.trim();
+  if (!raw) { showToast('Paste some workouts first'); return; }
+
+  const lines = raw.split('\n').map(l => l.trim()).filter(Boolean);
+  parsedWorkouts = [];
+  const rows = [];
+
+  lines.forEach((line, i) => {
+    // Split by comma or tab
+    const parts = line.split(/[,\t]/).map(p => p.trim());
+    if (parts.length < 2) {
+      rows.push({ line, date: null, activity: null, mins: null, error: 'Could not parse — need at least date and activity' });
+      return;
+    }
+
+    let dateStr = null, activityStr = null, minsVal = null;
+
+    // Try to figure out which part is which
+    // Find mins (a plain number between 1-600)
+    let minsIdx = -1;
+    parts.forEach((p, idx) => {
+      const n = parseInt(p);
+      if (!isNaN(n) && n >= 1 && n <= 600 && /^\d+$/.test(p)) minsIdx = idx;
+    });
+
+    if (minsIdx !== -1) {
+      minsVal = parseInt(parts[minsIdx]);
+      const remaining = parts.filter((_, idx) => idx !== minsIdx);
+      // First remaining = date, rest = activity
+      dateStr = parseDate(remaining[0]);
+      activityStr = fuzzyActivity(remaining.slice(1).join(' ')) || fuzzyActivity(remaining[0]);
+      if (!activityStr && remaining.length > 1) activityStr = fuzzyActivity(remaining[1]);
+    } else {
+      // No clear mins — try first as date, second as activity, third as mins
+      dateStr = parseDate(parts[0]);
+      activityStr = fuzzyActivity(parts[1]);
+      minsVal = parts[2] ? parseInt(parts[2]) : null;
+      if (!minsVal || isNaN(minsVal)) minsVal = null;
+    }
+
+    const hasError = !dateStr || !activityStr || !minsVal;
+    const errorMsg = !dateStr ? 'Invalid date (must be a May 2026 date, not in future)' :
+                     !activityStr ? `Unknown activity "${parts.find(p => !parseDate(p) && isNaN(parseInt(p))) || ''}"` :
+                     !minsVal ? 'Missing duration in minutes' : null;
+
+    rows.push({ line, date: dateStr, activity: activityStr, mins: minsVal, error: errorMsg });
+    if (!hasError) parsedWorkouts.push({ date: dateStr, activity: activityStr, mins: minsVal, label: `${activityStr} on ${formatDateLabel(dateStr)}` });
+  });
+
+  // Render preview
+  const previewEl = document.getElementById('preview-rows');
+  previewEl.innerHTML = rows.map(r => `
+    <div class="preview-row ${r.error ? 'error' : ''}">
+      <div class="preview-cell dim">${r.date ? formatDateLabel(r.date) : '—'}</div>
+      <div class="preview-cell">${r.activity ? `${ACT_ICONS[r.activity] || '⚡'} ${r.activity}` : r.error ? `<span style="color:var(--red);font-size:11px">${r.error}</span>` : '—'}</div>
+      <div class="preview-cell dim">${r.mins ? r.mins + 'm' : '—'}</div>
+      <div class="preview-cell"><span class="preview-badge ${r.error ? 'badge-err' : 'badge-ok'}">${r.error ? 'Skip' : 'OK'}</span></div>
+    </div>
+  `).join('');
+
+  document.getElementById('csv-preview').style.display = 'block';
+  document.getElementById('csv-submit-btn').style.display = parsedWorkouts.length > 0 ? 'block' : 'none';
+  document.getElementById('csv-submit-btn').textContent = `Log ${parsedWorkouts.length} valid workout${parsedWorkouts.length !== 1 ? 's' : ''}`;
+}
+
+async function submitCSV() {
+  const name = document.getElementById('name-select').value;
+  if (!name) { showToast('Pick your name first'); return; }
+  if (!parsedWorkouts.length) { showToast('No valid workouts to log'); return; }
+
+  const btn = document.getElementById('csv-submit-btn');
+  btn.disabled = true;
+  btn.textContent = `Logging ${parsedWorkouts.length} workouts…`;
+
+  await submitWorkouts(name, parsedWorkouts);
+  btn.disabled = false;
+  btn.textContent = `Log ${parsedWorkouts.length} valid workouts`;
+}
+
+// ─── SHARED SUBMIT ────────────────────────────────────────────────────────────
+
+async function submitWorkouts(name, workouts) {
+  const results = await Promise.all(workouts.map(async w => {
+    try {
+      const res = await fetch('/api/log', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, activity: w.activity, mins: w.mins, date: w.date })
+      });
+      const data = await res.json();
+      return { ...w, success: res.ok, error: res.ok ? null : (data.error || 'Failed') };
+    } catch(e) {
+      return { ...w, success: false, error: 'Network error' };
+    }
+  }));
+
+  const passed = results.filter(r => r.success).length;
+  const failed = results.filter(r => !r.success).length;
+
+  // Show results
+  document.getElementById('summary-bar').innerHTML = `
+    <div class="summary-item">
+      <div class="summary-num green">${passed}</div>
+      <div class="summary-label">Logged</div>
+    </div>
+    <div class="summary-item">
+      <div class="summary-num ${failed > 0 ? 'red' : ''}">${failed}</div>
+      <div class="summary-label">Failed</div>
+    </div>
+    <div class="summary-item">
+      <div class="summary-num">${workouts.length}</div>
+      <div class="summary-label">Total</div>
+    </div>
+  `;
+
+  document.getElementById('results-wrap').innerHTML = results.map(r => `
+    <div class="result-row ${r.success ? 'success' : 'fail'}">
+      <div class="result-icon">${r.success ? '✅' : '❌'}</div>
+      <div class="result-text">
+        ${ACT_ICONS[r.activity] || '⚡'} ${r.activity} · ${r.mins}min · ${formatDateLabel(r.date)}
+        ${!r.success ? `<div class="result-reason">${r.error}</div>` : ''}
+      </div>
+    </div>
+  `).join('');
+
+  document.getElementById('results-section').style.display = 'block';
+  document.getElementById('results-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// ─── UTILS ────────────────────────────────────────────────────────────────────
+
+function switchTab(name) {
+  document.querySelectorAll('.tab-btn').forEach((btn, i) => {
+    btn.classList.toggle('active', ['manual','csv'][i] === name);
+  });
+  document.querySelectorAll('.tab-content').forEach((el, i) => {
+    el.classList.toggle('active', ['tab-manual','tab-csv'][i] === `tab-${name}`);
+  });
+}
+
+function resetAll() {
+  document.getElementById('results-section').style.display = 'none';
+  document.getElementById('csv-preview').style.display = 'none';
+  document.getElementById('csv-submit-btn').style.display = 'none';
+  document.getElementById('csv-input').value = '';
+  document.getElementById('rows-wrap').innerHTML = '';
+  parsedWorkouts = [];
+  addRow();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// Init
+const saved = localStorage.getItem('may-challenge-name');
+if (saved) document.getElementById('name-select').value = saved;
+document.getElementById('name-select').addEventListener('change', e => {
+  if (e.target.value) localStorage.setItem('may-challenge-name', e.target.value);
+});
+addRow();
+</script>
+</body>
+</html>
