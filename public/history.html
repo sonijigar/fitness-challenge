@@ -93,6 +93,31 @@
   .error-state { text-align: center; padding: 60px 20px; }
   .error-state p { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--text-3); }
   .error-state a { color: var(--green); text-decoration: none; }
+
+  /* DELETE BUTTON */
+  .workout-delete { background: transparent; border: none; color: var(--text-3); font-size: 16px; line-height: 1; padding: 6px 8px; margin-left: 4px; cursor: pointer; border-radius: 6px; transition: all 0.15s; flex-shrink: 0; font-family: inherit; }
+  .workout-delete:hover { color: var(--red); background: var(--surface-2); }
+  .workout-delete:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* CONFIRM MODAL */
+  .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.2s; padding: 20px; }
+  .modal-backdrop.show { opacity: 1; pointer-events: auto; }
+  .modal { background: var(--surface); border: 0.5px solid var(--border); border-radius: 16px; padding: 24px; max-width: 360px; width: 100%; transform: scale(0.95); transition: transform 0.2s; }
+  .modal-backdrop.show .modal { transform: scale(1); }
+  .modal-title { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800; letter-spacing: -0.5px; color: var(--text); margin-bottom: 8px; }
+  .modal-body { font-size: 14px; color: var(--text-2); line-height: 1.5; margin-bottom: 20px; }
+  .modal-body strong { color: var(--text); font-weight: 600; }
+  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
+  .modal-btn { padding: 10px 16px; font-size: 14px; font-weight: 500; border-radius: 10px; border: 0.5px solid var(--border); cursor: pointer; font-family: inherit; transition: all 0.15s; }
+  .modal-btn.cancel { background: transparent; color: var(--text); }
+  .modal-btn.cancel:hover { background: var(--surface-2); }
+  .modal-btn.confirm { background: var(--red); color: white; border-color: var(--red); }
+  .modal-btn.confirm:hover { opacity: 0.9; }
+  .modal-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* TOAST */
+  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--text); color: var(--bg); font-size: 14px; font-weight: 500; padding: 12px 20px; border-radius: 999px; transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1); white-space: nowrap; z-index: 200; font-family: inherit; }
+  .toast.show { transform: translateX(-50%) translateY(0); }
 </style>
 </head>
 <body>
@@ -117,6 +142,20 @@
     </div>
   </div>
 </div>
+
+<!-- Confirm delete modal -->
+<div class="modal-backdrop" id="confirm-modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-title">Delete workout?</div>
+    <div class="modal-body" id="confirm-body">…</div>
+    <div class="modal-actions">
+      <button class="modal-btn cancel" onclick="closeModal()">Cancel</button>
+      <button class="modal-btn confirm" id="confirm-btn" onclick="confirmDelete()">Delete</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
 
 <script>
 const SUPABASE_URL = 'https://teyafvhzoznsjknhinrd.supabase.co';
@@ -154,6 +193,8 @@ function render(name, workouts) {
   const color = COLORS[memberIdx] || COLORS[0];
   const initials = name.slice(0, 2).toUpperCase();
   const perPersonGoal = GOAL_MINS / MEMBERS.length;
+  const savedName = localStorage.getItem('may-challenge-name');
+  const isOwnPage = savedName === name;
 
   const totalMins = workouts.reduce((s, w) => s + w.mins, 0);
   const totalHrs = totalMins / 60;
@@ -260,20 +301,82 @@ function render(name, workouts) {
 
       <!-- WORKOUT LIST -->
       <div class="card">
-        <div class="card-title">All workouts · ${sessions} total</div>
+        <div class="card-title">All workouts · ${sessions} total${isOwnPage ? ' · tap ✕ to delete' : ''}</div>
         ${workouts.map(w => `
-          <div class="workout-row">
+          <div class="workout-row" data-workout-id="${w.id}">
             <div class="workout-icon">${ACT_ICONS[w.activity] || '⚡'}</div>
             <div class="workout-info">
               <div class="workout-activity">${w.activity}</div>
               <div class="workout-date">${formatDate(w.date)}</div>
             </div>
             <div class="workout-mins">${w.mins}m</div>
+            ${isOwnPage ? `<button class="workout-delete" onclick="askDelete(${w.id}, '${w.activity}', ${w.mins}, '${w.date}')" aria-label="Delete workout">✕</button>` : ''}
           </div>
         `).join('')}
       </div>
     `}
   `;
+}
+
+// Delete flow
+let pendingDelete = null;
+
+function askDelete(id, activity, mins, date) {
+  pendingDelete = { id, activity, mins, date };
+  const d = new Date(date + 'T12:00:00');
+  const dateLabel = d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+  document.getElementById('confirm-body').innerHTML =
+    `Delete <strong>${mins}m of ${activity}</strong> on ${dateLabel}? This can't be undone.`;
+  document.getElementById('confirm-btn').disabled = false;
+  document.getElementById('confirm-btn').textContent = 'Delete';
+  document.getElementById('confirm-modal').classList.add('show');
+}
+
+function closeModal() {
+  document.getElementById('confirm-modal').classList.remove('show');
+  pendingDelete = null;
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+async function confirmDelete() {
+  if (!pendingDelete) return;
+  const { id } = pendingDelete;
+  const name = getNameFromURL();
+  const btn = document.getElementById('confirm-btn');
+  btn.disabled = true;
+  btn.textContent = 'Deleting…';
+  try {
+    const res = await fetch('/api/delete', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, name })
+    });
+    const data = await res.json();
+    if (res.ok && data.success) {
+      // Optimistically remove the row from the DOM, then re-fetch to refresh stats
+      const row = document.querySelector(`[data-workout-id="${id}"]`);
+      if (row) row.style.transition = 'opacity 0.2s'; if (row) row.style.opacity = '0';
+      closeModal();
+      showToast('Workout deleted');
+      // Re-fetch and re-render so the hero stats and activity breakdown stay accurate
+      fetchWorkouts(name).then(workouts => render(name, workouts));
+    } else {
+      btn.disabled = false;
+      btn.textContent = 'Delete';
+      showToast(data.error || 'Delete failed');
+    }
+  } catch (e) {
+    btn.disabled = false;
+    btn.textContent = 'Delete';
+    showToast('Network error — try again');
+  }
 }
 
 // Init

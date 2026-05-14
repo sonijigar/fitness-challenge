@@ -16,3 +16,7 @@ create policy "Anyone can insert"
 create policy "Anyone can read"
   on workouts for select
   using (true);
+
+create policy "Anyone can delete"
+  on workouts for delete
+  using (true);
