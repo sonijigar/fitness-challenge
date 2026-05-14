@@ -107,6 +107,24 @@
   .nav a:hover { color: var(--text); border-color: var(--text-3); }
   .nav a.active { color: var(--green); border-color: var(--green); }
 
+  /* TODAY CHECK-INS */
+  .checkin-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+  .checkin-pill { display: flex; align-items: center; gap: 8px; padding: 8px 12px 8px 8px; background: var(--surface-2); border: 0.5px solid var(--border); border-radius: 999px; }
+  .checkin-avatar { width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'DM Mono', monospace; font-size: 9px; font-weight: 600; flex-shrink: 0; }
+  .checkin-name { font-size: 13px; color: var(--text); font-weight: 500; }
+  .checkin-mins { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text-2); }
+  .checkin-empty { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--text-3); padding: 8px 0; }
+
+  /* RECENT FEED */
+  .feed-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 0.5px solid var(--border); text-decoration: none; }
+  .feed-row:last-child { border-bottom: none; padding-bottom: 0; }
+  .feed-icon { font-size: 18px; width: 28px; flex-shrink: 0; text-align: center; }
+  .feed-info { flex: 1; min-width: 0; }
+  .feed-line { font-size: 13px; color: var(--text); }
+  .feed-line .feed-name { font-weight: 600; }
+  .feed-line .feed-mins { color: var(--green); font-family: 'DM Mono', monospace; font-weight: 500; }
+  .feed-when { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text-3); margin-top: 2px; }
+
   /* LOADING */
   .loading { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 60vh; gap: 12px; }
   .loading-spinner { width: 32px; height: 32px; border: 2px solid var(--border); border-top-color: var(--green); border-radius: 50%; animation: spin 0.8s linear infinite; }
@@ -209,6 +227,44 @@ function render(workouts) {
   }
   const maxWeekMins = Math.max(...weeks.map(w => w.mins), 1);
 
+  // Today's check-ins: aggregate per member for today's date (positive framing — only those who logged)
+  const todayMap = {};
+  workouts.forEach(w => {
+    if (w.date === today) {
+      todayMap[w.name] = (todayMap[w.name] || 0) + w.mins;
+    }
+  });
+  const todayCheckins = Object.entries(todayMap)
+    .map(([name, mins]) => {
+      const i = MEMBERS.indexOf(name);
+      return { name, mins, color: COLORS[i] || COLORS[0] };
+    })
+    .sort((a, b) => b.mins - a.mins);
+
+  // Recent feed: last 8 workouts by created_at (falls back to date if created_at missing)
+  function timeAgo(ts) {
+    if (!ts) return '';
+    const diff = Math.floor((now - new Date(ts)) / 1000);
+    if (diff < 60) return 'just now';
+    if (diff < 3600) return `${Math.floor(diff/60)}m ago`;
+    if (diff < 86400) return `${Math.floor(diff/3600)}h ago`;
+    if (diff < 172800) return 'yesterday';
+    return `${Math.floor(diff/86400)}d ago`;
+  }
+  const recentFeed = [...workouts]
+    .sort((a, b) => {
+      const ta = a.created_at ? new Date(a.created_at).getTime() : new Date(a.date).getTime();
+      const tb = b.created_at ? new Date(b.created_at).getTime() : new Date(b.date).getTime();
+      return tb - ta;
+    })
+    .slice(0, 8)
+    .map(w => ({ ...w, whenLabel: timeAgo(w.created_at) || formatRecentDate(w.date) }));
+
+  function formatRecentDate(dateStr) {
+    const d = new Date(dateStr + 'T12:00:00');
+    return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+  }
+
   document.getElementById('last-updated').textContent = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
 
   document.getElementById('main-content').innerHTML = `
@@ -280,6 +336,37 @@ function render(workouts) {
             </div>
             <div class="activity-hrs">${(mins/60).toFixed(1)}h</div>
           </div>
+        `).join('') : '<p style="font-size:13px;color:var(--text-3);padding:8px 0">No workouts yet</p>'}
+      </div>
+    </div>
+
+    <!-- TODAY + RECENT FEED -->
+    <div class="two-col" style="margin-bottom:16px">
+      <div class="card">
+        <div class="card-title">Today's check-ins · ${todayCheckins.length}/${MEMBERS.length}</div>
+        ${todayCheckins.length ? `
+          <div class="checkin-grid">
+            ${todayCheckins.map(c => `
+              <a class="checkin-pill" href="/history.html?name=${encodeURIComponent(c.name)}" style="text-decoration:none">
+                <div class="checkin-avatar" style="background:${c.color[0]};color:${c.color[1]}">${c.name.slice(0,2).toUpperCase()}</div>
+                <span class="checkin-name">${c.name}</span>
+                <span class="checkin-mins">${c.mins}m</span>
+              </a>
+            `).join('')}
+          </div>
+        ` : `<div class="checkin-empty">No one's logged today yet — be first 👀</div>`}
+      </div>
+
+      <div class="card">
+        <div class="card-title">Recently logged</div>
+        ${recentFeed.length ? recentFeed.map(w => `
+          <a class="feed-row" href="/history.html?name=${encodeURIComponent(w.name)}">
+            <div class="feed-icon">${ACT_ICONS[w.activity] || '⚡'}</div>
+            <div class="feed-info">
+              <div class="feed-line"><span class="feed-name">${w.name}</span> · ${w.activity} · <span class="feed-mins">${w.mins}m</span></div>
+              <div class="feed-when">${w.whenLabel}</div>
+            </div>
+          </a>
         `).join('') : '<p style="font-size:13px;color:var(--text-3);padding:8px 0">No workouts yet</p>'}
       </div>
     </div>
