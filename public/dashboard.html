@@ -162,6 +162,18 @@
 
 <script>
 const SUPABASE_URL = 'https://teyafvhzoznsjknhinrd.supabase.co';
+const DISPLAY_TZ = 'America/New_York';
+
+// Convert a workout's created_at (UTC) to local display date
+// Falls back to date field if created_at is not available
+function workoutDisplayDate(w) {
+  if (w.created_at) {
+    return new Date(w.created_at).toLocaleDateString('en-US', {
+      timeZone: DISPLAY_TZ, year: 'numeric', month: '2-digit', day: '2-digit'
+    }).split('/').reverse().join('-').replace(/(\d{4})-(\d{2})-(\d{2})/, '$1-$2-$3');
+  }
+  return w.date;
+}
 const SUPABASE_KEY = 'sb_publishable_BwZtfeVzUS_hoY-3L75T1w_CfFntJYM';
 const GOAL_MINS = 250 * 60;
 const MAY_DAYS = 31;
