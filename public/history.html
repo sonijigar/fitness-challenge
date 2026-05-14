@@ -159,6 +159,20 @@
 
 <script>
 const SUPABASE_URL = 'https://teyafvhzoznsjknhinrd.supabase.co';
+const DISPLAY_TZ = 'America/New_York';
+
+// Convert a workout's created_at (UTC) to local display date
+function workoutDisplayDate(w) {
+  if (w.created_at) {
+    const d = new Date(w.created_at);
+    const local = d.toLocaleDateString('en-US', {
+      timeZone: DISPLAY_TZ, year: 'numeric', month: '2-digit', day: '2-digit'
+    });
+    const [month, day, year] = local.split('/');
+    return `${year}-${month}-${day}`;
+  }
+  return w.date;
+}
 const SUPABASE_KEY = 'sb_publishable_BwZtfeVzUS_hoY-3L75T1w_CfFntJYM';
 const GOAL_MINS = 250 * 60;
 const MEMBERS = ['Aashka','Heli','Himani','Jigar','Karan','Kashyap','Khushboo','Malhar','Raghav','Vishrut'];
@@ -183,7 +197,8 @@ async function fetchWorkouts(name) {
   return res.json();
 }
 
-function formatDate(dateStr) {
+function formatDate(w) {
+  const dateStr = workoutDisplayDate(w);
   const d = new Date(dateStr + 'T12:00:00');
   return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
 }
@@ -307,7 +322,7 @@ function render(name, workouts) {
             <div class="workout-icon">${ACT_ICONS[w.activity] || '⚡'}</div>
             <div class="workout-info">
               <div class="workout-activity">${w.activity}</div>
-              <div class="workout-date">${formatDate(w.date)}</div>
+              <div class="workout-date">${formatDate(w)}</div>
             </div>
             <div class="workout-mins">${w.mins}m</div>
             ${isOwnPage ? `<button class="workout-delete" onclick="askDelete(${w.id}, '${w.activity}', ${w.mins}, '${w.date}')" aria-label="Delete workout">✕</button>` : ''}
