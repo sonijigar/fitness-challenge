@@ -74,7 +74,7 @@ SUPABASE_ANON_KEY=your-anon-key
 
 ## Members
 
-Aashka · Heli · Himani · Jigar · Karan · Kashyap · Khushboo · Malhar · Raghav · Vishrut
+Ashka · Heli · Himani · Jigar · Karan · Kashyap · Khushboo · Malhar · Raghav · Vishrut
 
 To add or remove a member, update the `MEMBERS` array in `api/log.js` and the `<select>` in `public/index.html`.
 
