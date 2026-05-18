@@ -124,7 +124,7 @@
   .mascot-section { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 24px 20px 16px; background: var(--surface); border: 0.5px solid var(--border); border-radius: 20px; position: relative; overflow: hidden; margin-bottom: 16px; }
   .mascot-section::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--green), transparent); }
   .mascot-canvas-wrap { position: relative; width: 200px; height: 200px; }
-  .mascot-canvas-wrap canvas { width: 200px !important; height: 200px !important; }
+  .mascot-canvas-wrap canvas { width: 200px !important; height: 200px !important; filter: hue-rotate(85deg) saturate(0.75) brightness(0.95); }
   .crown-overlay { position: absolute; top: -8px; left: 50%; transform: translateX(-50%); pointer-events: none; opacity: 0; transition: opacity 0.5s; }
   .crown-overlay.show { opacity: 1; animation: crown-bounce 2s ease-in-out infinite; }
   @keyframes crown-bounce { 0%,100%{transform:translateX(-50%) translateY(0)} 50%{transform:translateX(-50%) translateY(-6px)} }
