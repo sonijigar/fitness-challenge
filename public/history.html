@@ -487,14 +487,14 @@ function initMascot(todayMins) {
       src: '/dog.riv',
       canvas: canvas,
       autoplay: true,
-      animations: [animationName],
+      artboard: animationName,
       layout: new rive.Layout({
         fit: rive.Fit.Contain,
         alignment: rive.Alignment.Center
       }),
       onLoad: () => {
         riveInstance.resizeDrawingSurfaceToCanvas();
-        console.log('Rive loaded:', animationName);
+        console.log('Rive loaded artboard:', animationName);
       },
       onLoadError: (e) => {
         console.error('Rive load error:', e);
