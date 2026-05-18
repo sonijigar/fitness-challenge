@@ -6,6 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>May Challenge · History</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/@rive-app/canvas@2.10.4/rive.js"></script>
 <style>
   :root {
     --green: #1D9E75; --green-2: #E1F5EE; --green-3: #0a5c44;
@@ -118,6 +119,24 @@
   /* TOAST */
   .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--text); color: var(--bg); font-size: 14px; font-weight: 500; padding: 12px 20px; border-radius: 999px; transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1); white-space: nowrap; z-index: 200; font-family: inherit; }
   .toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* MASCOT */
+  .mascot-section { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 24px 20px 16px; background: var(--surface); border: 0.5px solid var(--border); border-radius: 20px; position: relative; overflow: hidden; margin-bottom: 16px; }
+  .mascot-section::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--green), transparent); }
+  .mascot-canvas-wrap { position: relative; width: 200px; height: 200px; }
+  .mascot-canvas-wrap canvas { width: 200px !important; height: 200px !important; }
+  .crown-overlay { position: absolute; top: -8px; left: 50%; transform: translateX(-50%); pointer-events: none; opacity: 0; transition: opacity 0.5s; }
+  .crown-overlay.show { opacity: 1; animation: crown-bounce 2s ease-in-out infinite; }
+  @keyframes crown-bounce { 0%,100%{transform:translateX(-50%) translateY(0)} 50%{transform:translateX(-50%) translateY(-6px)} }
+  .mascot-status { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--text-2); letter-spacing: 0.05em; }
+  .mascot-today { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; letter-spacing: -0.5px; color: var(--text); }
+  .mascot-label { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.08em; }
+  .mascot-bar-wrap { width: 180px; }
+  .mascot-bar-bg { height: 4px; background: var(--surface-2); border-radius: 999px; overflow: hidden; }
+  .mascot-bar-fill { height: 4px; background: var(--green); border-radius: 999px; transition: width 0.8s cubic-bezier(0.34,1.56,0.64,1); }
+  .mascot-milestones { display: flex; justify-content: space-between; width: 180px; margin-top: 4px; }
+  .milestone { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text-3); }
+  .milestone.reached { color: var(--green); }
 </style>
 </head>
 <body>
@@ -135,7 +154,34 @@
     <a href="#" class="active" id="nav-name">…</a>
   </div>
 
-  <div id="main-content">
+  <div id="mascot-section" style="display:none">
+  <div class="mascot-section">
+    <div class="mascot-label" id="mascot-date-label">TODAY</div>
+    <div class="mascot-canvas-wrap">
+      <canvas id="mascot-canvas"></canvas>
+      <svg class="crown-overlay" id="crown-overlay" width="60" height="44" viewBox="0 0 60 44" fill="none">
+        <path d="M5 38 L10 16 L20 28 L30 8 L40 28 L50 16 L55 38 Z" fill="#FFD700" stroke="#cc8800" stroke-width="2" stroke-linejoin="round"/>
+        <rect x="5" y="36" width="50" height="8" rx="3" fill="#FFD700" stroke="#cc8800" stroke-width="2"/>
+        <circle cx="30" cy="10" r="4" fill="#e05555" stroke="#cc8800" stroke-width="1.5"/>
+        <circle cx="10" cy="18" r="3" fill="#5B8DD9" stroke="#cc8800" stroke-width="1.5"/>
+        <circle cx="50" cy="18" r="3" fill="#4ade80" stroke="#cc8800" stroke-width="1.5"/>
+      </svg>
+    </div>
+    <div class="mascot-today"><span id="mascot-mins">0</span> min today</div>
+    <div class="mascot-status" id="mascot-status">Log a workout to wake the dog up 😴</div>
+    <div class="mascot-bar-wrap">
+      <div class="mascot-bar-bg">
+        <div class="mascot-bar-fill" id="mascot-bar" style="width:0%"></div>
+      </div>
+      <div class="mascot-milestones">
+        <span class="milestone" id="m-30">30m 🐾</span>
+        <span class="milestone" id="m-60">60m 😍</span>
+        <span class="milestone" id="m-90">90m 👑</span>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="main-content">
     <div class="loading">
       <div class="loading-spinner"></div>
       <p>Loading history...</p>
@@ -379,6 +425,92 @@ async function confirmDelete() {
   }
 }
 
+// MASCOT
+let riveInstance = null;
+
+function initMascot(todayMins) {
+  const section = document.getElementById('mascot-section');
+  section.style.display = 'block';
+
+  // Update mins display
+  document.getElementById('mascot-mins').textContent = todayMins;
+
+  // Update progress bar (goal = 90 mins)
+  const pct = Math.min(100, (todayMins / 90) * 100);
+  document.getElementById('mascot-bar').style.width = pct + '%';
+
+  // Update milestone highlights
+  if (todayMins >= 30) document.getElementById('m-30').classList.add('reached');
+  if (todayMins >= 60) document.getElementById('m-60').classList.add('reached');
+  if (todayMins >= 90) document.getElementById('m-90').classList.add('reached');
+
+  // Determine state and status message
+  let animationName, statusMsg, showCrown = false;
+  if (todayMins === 0) {
+    animationName = 'Dog C';
+    statusMsg = 'Log a workout to wake the dog up 😴';
+  } else if (todayMins < 60) {
+    animationName = 'Dog A';
+    statusMsg = todayMins < 30 ? 'Good start! Keep going 🐾' : 'Getting there! 30 more for heart eyes 💪';
+  } else if (todayMins < 90) {
+    animationName = 'Dog B';
+    statusMsg = 'Crushing it today! 😍 30 more for the crown 👑';
+  } else {
+    animationName = 'Dog B';
+    statusMsg = 'LEGENDARY day. Crown earned. 👑✨';
+    showCrown = true;
+  }
+
+  document.getElementById('mascot-status').textContent = statusMsg;
+
+  // Show/hide crown
+  const crown = document.getElementById('crown-overlay');
+  if (showCrown) crown.classList.add('show');
+  else crown.classList.remove('show');
+
+  // Update date label
+  const today = new Date();
+  document.getElementById('mascot-date-label').textContent =
+    today.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }).toUpperCase();
+
+  // Init Rive
+  if (riveInstance) {
+    riveInstance.stop();
+    riveInstance.cleanupInstances();
+  }
+
+  try {
+    riveInstance = new rive.Rive({
+      src: '/green-dog.riv',
+      canvas: document.getElementById('mascot-canvas'),
+      autoplay: true,
+      animations: [animationName],
+      onLoad: () => {
+        riveInstance.resizeDrawingSurfaceToCanvas();
+      },
+      onLoadError: (e) => {
+        console.error('Rive load error:', e);
+        document.getElementById('mascot-canvas').style.display = 'none';
+      }
+    });
+  } catch(e) {
+    console.error('Rive init error:', e);
+  }
+}
+
+function getTodayMins(workouts) {
+  const tz = 'America/Los_Angeles';
+  const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: tz });
+  return workouts
+    .filter(w => {
+      const wDate = w.created_at
+        ? new Date(w.created_at).toLocaleDateString('en-CA', { timeZone: tz })
+        : w.date;
+      return wDate === todayStr;
+    })
+    .reduce((s, w) => s + w.mins, 0);
+}
+
 // Init
 const name = getNameFromURL();
 if (!name || !MEMBERS.includes(name)) {
@@ -388,7 +520,10 @@ if (!name || !MEMBERS.includes(name)) {
     </div>
   `;
 } else {
-  fetchWorkouts(name).then(workouts => render(name, workouts)).catch(e => {
+  fetchWorkouts(name).then(workouts => {
+  render(name, workouts);
+  initMascot(getTodayMins(workouts));
+}).catch(e => {
     document.getElementById('main-content').innerHTML = `
       <div class="error-state">
         <p>Failed to load data. <a href="/dashboard.html">← Back to dashboard</a></p>
