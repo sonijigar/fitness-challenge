@@ -6,6 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>May Challenge · History</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
 <style>
   :root {
     --green: #1D9E75; --green-2: #E1F5EE; --green-3: #0a5c44;
@@ -118,6 +119,20 @@
   /* TOAST */
   .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--text); color: var(--bg); font-size: 14px; font-weight: 500; padding: 12px 20px; border-radius: 999px; transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1); white-space: nowrap; z-index: 200; font-family: inherit; }
   .toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* MASCOT */
+  .mascot-section { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 24px 20px 16px; background: var(--surface); border: 0.5px solid var(--border); border-radius: 20px; position: relative; overflow: hidden; margin-bottom: 16px; }
+  .mascot-section::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--green), transparent); }
+  .mascot-wrap { position: relative; width: 280px; height: 280px; display: flex; align-items: center; justify-content: center; }
+  .crown-overlay { position: absolute; top: -4px; left: 50%; transform: translateX(-50%); pointer-events: none; opacity: 0; transition: opacity 0.5s; z-index: 2; }
+  .crown-overlay.show { opacity: 1; animation: crown-bounce 2s ease-in-out infinite; }
+  @keyframes crown-bounce { 0%,100%{transform:translateX(-50%) translateY(0)} 50%{transform:translateX(-50%) translateY(-6px)} }
+  .dog-img { width: 260px; height: 260px; object-fit: contain; transition: opacity 0.4s; filter: hue-rotate(-75deg) saturate(1.3) brightness(1.05); }
+  
+  .mascot-status { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--text-2); letter-spacing: 0.05em; }
+  .mascot-today { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; letter-spacing: -0.5px; color: var(--text); }
+  .mascot-label { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.08em; }
+
 </style>
 </head>
 <body>
@@ -135,7 +150,25 @@
     <a href="#" class="active" id="nav-name">…</a>
   </div>
 
-  <div id="main-content">
+  <div id="mascot-section" style="display:none">
+  <div class="mascot-section">
+    <div class="mascot-label" id="mascot-date-label">TODAY</div>
+    <div class="mascot-wrap">
+      <img id="mascot-dog" class="dog-img" src="/img/dog-sleep.png" alt="mascot dog" />
+      <svg class="crown-overlay" id="crown-overlay" width="48" height="36" viewBox="0 0 48 36" fill="none">
+        <path d="M4 30 L8 12 L16 22 L24 6 L32 22 L40 12 L44 30 Z" fill="#FFD700" stroke="#cc8800" stroke-width="1.5" stroke-linejoin="round"/>
+        <rect x="4" y="28" width="40" height="7" rx="2.5" fill="#FFD700" stroke="#cc8800" stroke-width="1.5"/>
+        <circle cx="24" cy="8" r="3" fill="#e05555" stroke="#cc8800" stroke-width="1"/>
+        <circle cx="8" cy="14" r="2.5" fill="#5B8DD9" stroke="#cc8800" stroke-width="1"/>
+        <circle cx="40" cy="14" r="2.5" fill="#4ade80" stroke="#cc8800" stroke-width="1"/>
+      </svg>
+    </div>
+    <div class="mascot-today"><span id="mascot-mins">0</span> min today</div>
+    <div class="mascot-status" id="mascot-status">Log a workout to wake the dog up 😴</div>
+
+  </div>
+</div>
+<div id="main-content">
     <div class="loading">
       <div class="loading-spinner"></div>
       <p>Loading history...</p>
@@ -379,6 +412,65 @@ async function confirmDelete() {
   }
 }
 
+// MASCOT — PNG DOG
+const DOG_IMAGES = {
+  sleep: '/img/dog-sleep.png',
+  happy: '/img/dog-happy.png',
+  love: '/img/dog-love.png',
+  confused: '/img/dog-confused.png'
+};
+
+
+
+function initMascot(todayMins) {
+  const section = document.getElementById('mascot-section');
+  section.style.display = 'block';
+
+  document.getElementById('mascot-mins').textContent = todayMins;
+
+
+
+  let state, statusMsg, showCrown = false;
+  if (todayMins === 0) {
+    state = 'sleep';
+    statusMsg = 'Log a workout to wake the dog up 😴';
+  } else if (todayMins < 60) {
+    state = 'happy';
+    statusMsg = todayMins < 30 ? 'Good start! Keep going 🐾' : 'Getting there! 30 more for heart eyes 💪';
+  } else if (todayMins < 90) {
+    state = 'love';
+    statusMsg = 'Crushing it today! 😍 30 more for the crown 👑';
+  } else {
+    state = 'love';
+    statusMsg = 'LEGENDARY day. Crown earned. 👑✨';
+    showCrown = true;
+  }
+
+  document.getElementById('mascot-status').textContent = statusMsg;
+  document.getElementById('crown-overlay').classList.toggle('show', showCrown);
+
+  const dog = document.getElementById('mascot-dog');
+  dog.src = DOG_IMAGES[state];
+  dog.className = 'dog-img';
+
+  const today = new Date();
+  document.getElementById('mascot-date-label').textContent =
+    today.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }).toUpperCase();
+}
+
+function getTodayMins(workouts) {
+  const tz = 'America/Los_Angeles';
+  const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: tz });
+  return workouts
+    .filter(w => {
+      const wDate = w.created_at
+        ? new Date(w.created_at).toLocaleDateString('en-CA', { timeZone: tz })
+        : w.date;
+      return wDate === todayStr;
+    })
+    .reduce((s, w) => s + w.mins, 0);
+}
+
 // Init
 const name = getNameFromURL();
 if (!name || !MEMBERS.includes(name)) {
@@ -388,7 +480,10 @@ if (!name || !MEMBERS.includes(name)) {
     </div>
   `;
 } else {
-  fetchWorkouts(name).then(workouts => render(name, workouts)).catch(e => {
+  fetchWorkouts(name).then(workouts => {
+  render(name, workouts);
+  initMascot(getTodayMins(workouts));
+}).catch(e => {
     document.getElementById('main-content').innerHTML = `
       <div class="error-state">
         <p>Failed to load data. <a href="/dashboard.html">← Back to dashboard</a></p>
