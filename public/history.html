@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>May Challenge · History</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<script src="https://unpkg.com/@rive-app/canvas@2.10.4/rive.js"></script>
+<script src="https://unpkg.com/@rive-app/canvas@2.17.3/rive.js"></script>
 <style>
   :root {
     --green: #1D9E75; --green-2: #E1F5EE; --green-3: #0a5c44;
@@ -480,17 +480,24 @@ function initMascot(todayMins) {
   }
 
   try {
+    const canvas = document.getElementById('mascot-canvas');
+    canvas.width = 200;
+    canvas.height = 200;
     riveInstance = new rive.Rive({
       src: '/green-dog.riv',
-      canvas: document.getElementById('mascot-canvas'),
+      canvas: canvas,
       autoplay: true,
       animations: [animationName],
+      layout: new rive.Layout({
+        fit: rive.Fit.Contain,
+        alignment: rive.Alignment.Center
+      }),
       onLoad: () => {
         riveInstance.resizeDrawingSurfaceToCanvas();
+        console.log('Rive loaded:', animationName);
       },
       onLoadError: (e) => {
         console.error('Rive load error:', e);
-        document.getElementById('mascot-canvas').style.display = 'none';
       }
     });
   } catch(e) {
