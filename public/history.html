@@ -124,43 +124,16 @@
   .mascot-section { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 24px 20px 16px; background: var(--surface); border: 0.5px solid var(--border); border-radius: 20px; position: relative; overflow: hidden; margin-bottom: 16px; }
   .mascot-section::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--green), transparent); }
   .mascot-wrap { position: relative; width: 200px; height: 200px; display: flex; align-items: center; justify-content: center; }
-  .mascot-wrap svg { overflow: visible; }
-  .crown-overlay { position: absolute; top: 0px; left: 50%; transform: translateX(-50%); pointer-events: none; opacity: 0; transition: opacity 0.5s; z-index: 2; }
+  .crown-overlay { position: absolute; top: -4px; left: 50%; transform: translateX(-50%); pointer-events: none; opacity: 0; transition: opacity 0.5s; z-index: 2; }
   .crown-overlay.show { opacity: 1; animation: crown-bounce 2s ease-in-out infinite; }
   @keyframes crown-bounce { 0%,100%{transform:translateX(-50%) translateY(0)} 50%{transform:translateX(-50%) translateY(-6px)} }
-
-  /* DOG ANIMATIONS */
-  .dog-idle { animation: dog-breathe 2.5s ease-in-out infinite; transform-origin: center bottom; }
-  @keyframes dog-breathe { 0%,100%{transform:scaleY(1) translateY(0)} 50%{transform:scaleY(1.02) translateY(-2px)} }
-  .dog-sleep { animation: dog-snore 3s ease-in-out infinite; transform-origin: center bottom; }
-  @keyframes dog-snore { 0%,100%{transform:scaleY(1) scaleX(1)} 50%{transform:scaleY(0.96) scaleX(1.03)} }
-  .dog-love { animation: dog-bounce 0.5s ease-in-out infinite alternate; transform-origin: center bottom; }
-  @keyframes dog-bounce { 0%{transform:translateY(0) rotate(-2deg)} 100%{transform:translateY(-8px) rotate(2deg)} }
-  .dog-tail { animation: tail-wag 0.4s ease-in-out infinite alternate; transform-origin: left center; }
-  @keyframes tail-wag { 0%{transform:rotate(-15deg)} 100%{transform:rotate(15deg)} }
-  .dog-tail-sleep { animation: tail-slow 3s ease-in-out infinite; transform-origin: left center; }
-  @keyframes tail-slow { 0%,100%{transform:rotate(0deg)} 50%{transform:rotate(5deg)} }
-  .dog-ear-l { animation: ear-twitch-l 4s ease-in-out infinite; transform-origin: bottom center; }
-  @keyframes ear-twitch-l { 0%,90%,100%{transform:rotate(0deg)} 93%{transform:rotate(-8deg)} 96%{transform:rotate(2deg)} }
-  .dog-ear-r { animation: ear-twitch-r 4.5s ease-in-out infinite; transform-origin: bottom center; }
-  @keyframes ear-twitch-r { 0%,88%,100%{transform:rotate(0deg)} 91%{transform:rotate(8deg)} 94%{transform:rotate(-2deg)} }
-  .dog-blink { animation: blink 4s ease-in-out infinite; }
-  @keyframes blink { 0%,42%,48%,100%{transform:scaleY(1)} 45%{transform:scaleY(0.1)} }
-  .zzz { animation: zzz-float 2.5s ease-in-out infinite; opacity: 0; }
-  .zzz-1 { animation-delay: 0s; }
-  .zzz-2 { animation-delay: 0.8s; }
-  .zzz-3 { animation-delay: 1.6s; }
-  @keyframes zzz-float { 0%{opacity:0;transform:translate(0,0) scale(0.6)} 20%{opacity:0.9} 80%{opacity:0.4} 100%{opacity:0;transform:translate(-12px,-20px) scale(1)} }
-  .heart-float { animation: heart-pop 1.5s ease-out infinite; opacity: 0; }
-  .heart-1 { animation-delay: 0s; }
-  .heart-2 { animation-delay: 0.5s; }
-  .heart-3 { animation-delay: 1s; }
-  @keyframes heart-pop { 0%{opacity:0;transform:translate(0,0) scale(0.4)} 30%{opacity:1} 100%{opacity:0;transform:translate(var(--hx,-10px),var(--hy,-30px)) scale(1)} }
-  .sparkle { animation: sparkle-spin 1.2s linear infinite; opacity: 0; }
-  .sparkle-1 { animation-delay: 0s; }
-  .sparkle-2 { animation-delay: 0.4s; }
-  .sparkle-3 { animation-delay: 0.8s; }
-  @keyframes sparkle-spin { 0%{opacity:0;transform:scale(0) rotate(0deg)} 30%{opacity:1;transform:scale(1) rotate(90deg)} 100%{opacity:0;transform:scale(0.5) rotate(180deg)} }
+  .dog-img { width: 180px; height: 180px; object-fit: contain; transition: opacity 0.4s; }
+  .dog-anim-idle { animation: dog-idle 2.5s ease-in-out infinite; }
+  @keyframes dog-idle { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-5px)} }
+  .dog-anim-sleep { animation: dog-sleep 3s ease-in-out infinite; }
+  @keyframes dog-sleep { 0%,100%{transform:scale(1)} 50%{transform:scale(1.03) translateY(2px)} }
+  .dog-anim-love { animation: dog-love 0.6s ease-in-out infinite alternate; }
+  @keyframes dog-love { 0%{transform:translateY(0) rotate(-3deg)} 100%{transform:translateY(-10px) rotate(3deg)} }
   .mascot-status { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--text-2); letter-spacing: 0.05em; }
   .mascot-today { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; letter-spacing: -0.5px; color: var(--text); }
   .mascot-label { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.08em; }
@@ -191,7 +164,7 @@
   <div class="mascot-section">
     <div class="mascot-label" id="mascot-date-label">TODAY</div>
     <div class="mascot-wrap">
-      <div id="mascot-dog"></div>
+      <img id="mascot-dog" class="dog-img dog-anim-sleep" src="/img/dog-sleep.png" alt="mascot dog" />
       <svg class="crown-overlay" id="crown-overlay" width="48" height="36" viewBox="0 0 48 36" fill="none">
         <path d="M4 30 L8 12 L16 22 L24 6 L32 22 L40 12 L44 30 Z" fill="#FFD700" stroke="#cc8800" stroke-width="1.5" stroke-linejoin="round"/>
         <rect x="4" y="28" width="40" height="7" rx="2.5" fill="#FFD700" stroke="#cc8800" stroke-width="1.5"/>
@@ -458,103 +431,20 @@ async function confirmDelete() {
   }
 }
 
-// MASCOT — SVG DOG
-const DOG_MAIN = '#1D9E75';
-const DOG_DARK = '#0F6E56';
-const DOG_LIGHT = '#4ade80';
-const DOG_CHEEK = '#FF8C8C';
+// MASCOT — PNG DOG
+const DOG_IMAGES = {
+  sleep: '/img/dog-sleep.png',
+  happy: '/img/dog-happy.png',
+  love: '/img/dog-love.png',
+  confused: '/img/dog-confused.png'
+};
 
-function dogSVG(state) {
-  const isAsleep = state === 'sleep';
-  const isLove = state === 'love';
-  const bodyClass = isAsleep ? 'dog-sleep' : isLove ? 'dog-love' : 'dog-idle';
-  const tailClass = isAsleep ? 'dog-tail-sleep' : 'dog-tail';
-
-  const eyes = isAsleep
-    ? `<path d="M62 72 Q68 66 74 72" stroke="${DOG_DARK}" stroke-width="2.5" stroke-linecap="round" fill="none"/>
-       <path d="M86 72 Q92 66 98 72" stroke="${DOG_DARK}" stroke-width="2.5" stroke-linecap="round" fill="none"/>`
-    : isLove
-    ? `<g transform="translate(62,62)"><path d="M0 4 Q3 0 6 4 Q9 0 12 4 Q12 9 6 13 Q0 9 0 4Z" fill="#FF6B9D" stroke="#cc3366" stroke-width="1.2"/></g>
-       <g transform="translate(86,62)"><path d="M0 4 Q3 0 6 4 Q9 0 12 4 Q12 9 6 13 Q0 9 0 4Z" fill="#FF6B9D" stroke="#cc3366" stroke-width="1.2"/></g>`
-    : `<g class="dog-blink" style="transform-origin:68px 68px"><ellipse cx="68" cy="68" rx="6" ry="7" fill="white" stroke="${DOG_DARK}" stroke-width="2"/>
-       <circle cx="68" cy="69" r="4" fill="${DOG_DARK}"/><circle cx="70" cy="67" r="1.8" fill="white"/></g>
-       <g class="dog-blink" style="transform-origin:92px 68px"><ellipse cx="92" cy="68" rx="6" ry="7" fill="white" stroke="${DOG_DARK}" stroke-width="2"/>
-       <circle cx="92" cy="69" r="4" fill="${DOG_DARK}"/><circle cx="94" cy="67" r="1.8" fill="white"/></g>`;
-
-  const mouth = isAsleep
-    ? `<path d="M74 82 Q80 86 86 82" stroke="${DOG_DARK}" stroke-width="2" stroke-linecap="round" fill="none"/>
-       <line x1="80" y1="86" x2="80" y2="90" stroke="${DOG_DARK}" stroke-width="1.5" stroke-linecap="round" opacity="0.3"/>`
-    : isLove
-    ? `<path d="M70 80 Q80 92 90 80" fill="#cc5500" stroke="${DOG_DARK}" stroke-width="2"/>
-       <ellipse cx="80" cy="86" rx="5" ry="3.5" fill="#FF8C5A"/>`
-    : `<path d="M72 80 Q80 88 88 80" fill="#cc5500" stroke="${DOG_DARK}" stroke-width="2"/>`;
-
-  const extras = isAsleep
-    ? `<g class="zzz zzz-1" style="transform-origin:100px 50px"><text x="100" y="50" font-size="14" font-weight="700" fill="${DOG_MAIN}" font-family="monospace">z</text></g>
-       <g class="zzz zzz-2" style="transform-origin:110px 40px"><text x="110" y="40" font-size="11" font-weight="700" fill="${DOG_MAIN}" font-family="monospace">z</text></g>
-       <g class="zzz zzz-3" style="transform-origin:118px 32px"><text x="118" y="32" font-size="9" font-weight="700" fill="${DOG_MAIN}" font-family="monospace">z</text></g>`
-    : isLove
-    ? `<g class="heart-float heart-1" style="--hx:-15px;--hy:-25px;transform-origin:55px 50px"><path d="M55 50 Q58 45 61 50 Q64 45 67 50 Q67 56 61 61 Q55 56 55 50Z" fill="#FF6B9D" opacity="0.8"/></g>
-       <g class="heart-float heart-2" style="--hx:20px;--hy:-30px;transform-origin:95px 45px"><path d="M95 45 Q98 40 101 45 Q104 40 107 45 Q107 51 101 56 Q95 51 95 45Z" fill="#FF6B9D" opacity="0.8"/></g>
-       <g class="heart-float heart-3" style="--hx:5px;--hy:-35px;transform-origin:75px 40px"><path d="M75 40 Q77 37 79 40 Q81 37 83 40 Q83 44 79 47 Q75 44 75 40Z" fill="#FF6B9D" opacity="0.8"/></g>`
-    : '';
-
-  return `<svg width="180" height="180" viewBox="30 20 110 130" fill="none">
-    <g class="${bodyClass}">
-      <!-- shadow -->
-      <ellipse cx="80" cy="138" rx="34" ry="6" fill="${DOG_DARK}" opacity="0.15"/>
-
-      <!-- tail -->
-      <g class="${tailClass}">
-        <path d="M108 108 Q118 98 116 86 Q114 78 120 72" stroke="${DOG_MAIN}" stroke-width="6" stroke-linecap="round" fill="none"/>
-        <circle cx="120" cy="70" r="5" fill="${DOG_LIGHT}" stroke="${DOG_DARK}" stroke-width="1.5"/>
-      </g>
-
-      <!-- back legs -->
-      <rect x="92" y="118" width="14" height="18" rx="7" fill="${DOG_MAIN}" stroke="${DOG_DARK}" stroke-width="2"/>
-      <ellipse cx="99" cy="136" rx="9" ry="5" fill="${DOG_MAIN}" stroke="${DOG_DARK}" stroke-width="2"/>
-      <rect x="58" y="118" width="14" height="18" rx="7" fill="${DOG_MAIN}" stroke="${DOG_DARK}" stroke-width="2"/>
-      <ellipse cx="65" cy="136" rx="9" ry="5" fill="${DOG_MAIN}" stroke="${DOG_DARK}" stroke-width="2"/>
-
-      <!-- body -->
-      <ellipse cx="80" cy="108" rx="32" ry="24" fill="${DOG_MAIN}" stroke="${DOG_DARK}" stroke-width="2.5"/>
-      <!-- belly -->
-      <ellipse cx="80" cy="112" rx="20" ry="15" fill="${DOG_LIGHT}" opacity="0.35"/>
-
-      <!-- head -->
-      <ellipse cx="80" cy="68" rx="28" ry="26" fill="${DOG_MAIN}" stroke="${DOG_DARK}" stroke-width="2.5"/>
-      <!-- face highlight -->
-      <ellipse cx="80" cy="72" rx="18" ry="16" fill="${DOG_LIGHT}" opacity="0.2"/>
-
-      <!-- ears -->
-      <g class="dog-ear-l">
-        <path d="M54 56 Q46 34 56 26 Q62 22 66 30 Q68 38 62 50 Z" fill="${DOG_MAIN}" stroke="${DOG_DARK}" stroke-width="2"/>
-        <path d="M56 52 Q50 36 58 30 Q62 26 64 34 Q65 40 60 48 Z" fill="${DOG_DARK}" opacity="0.25"/>
-      </g>
-      <g class="dog-ear-r">
-        <path d="M106 56 Q114 34 104 26 Q98 22 94 30 Q92 38 98 50 Z" fill="${DOG_MAIN}" stroke="${DOG_DARK}" stroke-width="2"/>
-        <path d="M104 52 Q110 36 102 30 Q98 26 96 34 Q95 40 100 48 Z" fill="${DOG_DARK}" opacity="0.25"/>
-      </g>
-
-      <!-- cheeks -->
-      <ellipse cx="58" cy="76" rx="8" ry="5.5" fill="${DOG_CHEEK}" opacity="0.45"/>
-      <ellipse cx="102" cy="76" rx="8" ry="5.5" fill="${DOG_CHEEK}" opacity="0.45"/>
-
-      <!-- eyes -->
-      ${eyes}
-
-      <!-- nose -->
-      <ellipse cx="80" cy="77" rx="5" ry="3.5" fill="${DOG_DARK}" stroke="${DOG_DARK}" stroke-width="1"/>
-      <ellipse cx="79" cy="76" rx="2" ry="1.2" fill="${DOG_LIGHT}" opacity="0.5"/>
-
-      <!-- mouth -->
-      ${mouth}
-    </g>
-
-    <!-- floating effects -->
-    ${extras}
-  </svg>`;
-}
+const DOG_ANIMS = {
+  sleep: 'dog-anim-sleep',
+  happy: 'dog-anim-idle',
+  love: 'dog-anim-love',
+  confused: 'dog-anim-idle'
+};
 
 function initMascot(todayMins) {
   const section = document.getElementById('mascot-section');
@@ -587,7 +477,10 @@ function initMascot(todayMins) {
 
   document.getElementById('mascot-status').textContent = statusMsg;
   document.getElementById('crown-overlay').classList.toggle('show', showCrown);
-  document.getElementById('mascot-dog').innerHTML = dogSVG(state);
+
+  const dog = document.getElementById('mascot-dog');
+  dog.src = DOG_IMAGES[state];
+  dog.className = 'dog-img ' + DOG_ANIMS[state];
 
   const today = new Date();
   document.getElementById('mascot-date-label').textContent =
