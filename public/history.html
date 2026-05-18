@@ -123,11 +123,11 @@
   /* MASCOT */
   .mascot-section { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 24px 20px 16px; background: var(--surface); border: 0.5px solid var(--border); border-radius: 20px; position: relative; overflow: hidden; margin-bottom: 16px; }
   .mascot-section::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--green), transparent); }
-  .mascot-wrap { position: relative; width: 200px; height: 200px; display: flex; align-items: center; justify-content: center; }
+  .mascot-wrap { position: relative; width: 280px; height: 280px; display: flex; align-items: center; justify-content: center; }
   .crown-overlay { position: absolute; top: -4px; left: 50%; transform: translateX(-50%); pointer-events: none; opacity: 0; transition: opacity 0.5s; z-index: 2; }
   .crown-overlay.show { opacity: 1; animation: crown-bounce 2s ease-in-out infinite; }
   @keyframes crown-bounce { 0%,100%{transform:translateX(-50%) translateY(0)} 50%{transform:translateX(-50%) translateY(-6px)} }
-  .dog-img { width: 180px; height: 180px; object-fit: contain; transition: opacity 0.4s; }
+  .dog-img { width: 260px; height: 260px; object-fit: contain; transition: opacity 0.4s; filter: hue-rotate(-75deg) saturate(1.3) brightness(1.05); }
   .dog-anim-idle { animation: dog-idle 2.5s ease-in-out infinite; }
   @keyframes dog-idle { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-5px)} }
   .dog-anim-sleep { animation: dog-sleep 3s ease-in-out infinite; }
