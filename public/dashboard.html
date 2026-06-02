@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>May Challenge · Dashboard</title>
+<script src="/config.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -138,8 +139,8 @@
 <div class="page">
   <div class="header">
     <div class="header-left">
-      <h1>MAY <span>CHALLENGE</span></h1>
-      <p>SQUAD ANALYTICS · 250 HRS · MAY 2026</p>
+      <h1 id="header-title">CHALLENGE</h1>
+      <p>${CHALLENGE.header} CHALLENGE · ${CHALLENGE.goalHours} HRS · ${CHALLENGE.month}</p>
     </div>
     <div class="header-right">
       <span class="live-dot"></span>LIVE DATA<br>
@@ -161,12 +162,12 @@
 </div>
 
 <script>
-const SUPABASE_URL = 'https://teyafvhzoznsjknhinrd.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_BwZtfeVzUS_hoY-3L75T1w_CfFntJYM';
-const GOAL_MINS = 250 * 60;
-const MAY_DAYS = 31;
-const MAY_START = new Date('2026-05-01');
-const MEMBERS = ['Ashka','Heli','Himani','Jigar','Karan','Kashyap','Khushboo','Malhar','Raghav','Vishrut'];
+// Config loaded from /config.js
+
+const GOAL_MINS = CHALLENGE.goalMins;
+const CHAL_DAYS = CHALLENGE.days;
+const CHAL_START = CHALLENGE.start;
+// MEMBERS loaded from /config.js
 const COLORS = [
   ['#0d3d2c','#4ade80'],['#1a2a4a','#60a5fa'],['#3d2a0d','#fbbf24'],
   ['#3d0d2a','#f472b6'],['#1a3d1a','#86efac'],['#2a1a3d','#a78bfa'],
@@ -175,8 +176,13 @@ const COLORS = [
 const ACT_ICONS = {Running:'🏃',Hiking:'🥾',Lifting:'🏋️',Cycling:'🚴',Walking:'🚶',HIIT:'💪',Swimming:'🏊',Yoga:'🧘',Volleyball:'🏐',Climbing:'🧗',Other:'⚡'};
 const ACT_COLORS = ['#1D9E75','#5580e0','#e0a855','#e05555','#a855e0','#55e0c8','#e08055','#80e055','#e055c8'];
 
+// Update header from config
+document.getElementById('header-title').innerHTML = CHALLENGE.header + ' <span>CHALLENGE</span>';
+document.getElementById('header-sub').textContent = 'SQUAD ANALYTICS · ' + CHALLENGE.goalHours + ' HRS · ' + CHALLENGE.month.toUpperCase();
+document.title = CHALLENGE.name + ' · Dashboard';
+
 async function fetchWorkouts() {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/workouts?select=*&order=date.asc`, {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/workouts?select=*&challenge=eq.${CHALLENGE.id}&order=date.asc`, {
     headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
   });
   return res.json();
@@ -185,16 +191,16 @@ async function fetchWorkouts() {
 function render(workouts) {
   const now = new Date();
   const today = now.toISOString().split('T')[0];
-  const dayOfMay = Math.min(MAY_DAYS, Math.max(1, Math.floor((now - MAY_START) / 86400000) + 1));
-  const daysLeft = Math.max(0, MAY_DAYS - dayOfMay + 1);
+  const dayOfChallenge = Math.min(CHAL_DAYS, Math.max(1, Math.floor((now - CHAL_START) / 86400000) + 1));
+  const daysLeft = Math.max(0, CHAL_DAYS - dayOfChallenge + 1);
   const totalMins = workouts.reduce((s, w) => s + w.mins, 0);
   const totalHrs = (totalMins / 60);
   const pct = Math.min(100, totalMins / GOAL_MINS * 100);
-  const expectedMins = (dayOfMay / MAY_DAYS) * GOAL_MINS;
+  const expectedMins = (dayOfChallenge / CHAL_DAYS) * GOAL_MINS;
   const paceDiff = (totalMins - expectedMins) / 60;
   const ahead = paceDiff >= 0;
   const neededPerPerson = Math.max(0, (GOAL_MINS - totalMins) / 60 / MEMBERS.length);
-  const projectedMins = daysLeft > 0 ? totalMins + (totalMins / dayOfMay) * daysLeft : totalMins;
+  const projectedMins = daysLeft > 0 ? totalMins + (totalMins / dayOfChallenge) * daysLeft : totalMins;
   const projectedHrs = (projectedMins / 60).toFixed(0);
   const onTrack = projectedMins >= GOAL_MINS;
 
@@ -221,8 +227,8 @@ function render(workouts) {
       const d = parseInt(wk.date.split('-')[2]);
       return d >= start && d <= end;
     }).reduce((s, wk) => s + wk.mins, 0);
-    const isCurrent = dayOfMay >= start && dayOfMay <= end;
-    const isFuture = dayOfMay < start;
+    const isCurrent = dayOfChallenge >= start && dayOfChallenge <= end;
+    const isFuture = dayOfChallenge < start;
     weeks.push({ label, mins, hrs: mins / 60, isCurrent, isFuture });
   }
   const maxWeekMins = Math.max(...weeks.map(w => w.mins), 1);
@@ -274,14 +280,14 @@ function render(workouts) {
         <div class="hero-current">${totalHrs.toFixed(1)}</div>
         <div class="hero-unit">hrs</div>
         <div class="hero-slash">/</div>
-        <div class="hero-goal">250</div>
+        <div class="hero-goal">${CHALLENGE.goalHours}</div>
       </div>
       <div class="hero-bar-wrap">
         <div class="hero-bar-bg">
           <div class="hero-bar-fill" style="width:${pct}%"></div>
         </div>
-        <div class="pace-marker" style="left:${(dayOfMay/MAY_DAYS)*100}%"></div>
-        <div class="pace-label" style="left:${(dayOfMay/MAY_DAYS)*100}%">TODAY</div>
+        <div class="pace-marker" style="left:${(dayOfChallenge/CHAL_DAYS)*100}%"></div>
+        <div class="pace-label" style="left:${(dayOfChallenge/CHAL_DAYS)*100}%">TODAY</div>
       </div>
       <div class="hero-meta">
         <div class="hero-meta-item">

@@ -5,8 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="May Challenge">
-<title>May Challenge</title>
+<meta name="apple-mobile-web-app-title" content="Fitness Challenge">
+<title>Challenge</title>
+<script src="/config.js"></script>
 <style>
   :root { --green: #1D9E75; --green-light: #E1F5EE; --green-dark: #0F6E56; --bg: #f7f7f5; --surface: #ffffff; --text: #1a1a18; --text-2: #6b6b67; --text-3: #a5a5a0; --border: rgba(0,0,0,0.1); --radius: 14px; --radius-sm: 10px; }
   @media (prefers-color-scheme: dark) { :root { --bg: #141412; --surface: #1f1f1d; --text: #f0f0ee; --text-2: #9a9a96; --text-3: #5a5a57; --border: rgba(255,255,255,0.1); --green-light: #0d3d2c; } }
@@ -56,8 +57,8 @@
 <div class="wrap">
   <div class="header">
     <div class="header-icon"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
-    <h1>May Challenge</h1>
-    <p>250 hours · May 2026</p>
+    <h1 id="log-title">Challenge</h1>
+    <p id="log-sub"></p>
   </div>
   <div class="dashboard-link"><a href="/dashboard.html">📊 View squad dashboard →</a></div>
   <div>
@@ -133,7 +134,7 @@
     btn.disabled = true; btn.textContent = 'Logging…';
     const date = document.getElementById('log-date').value || new Date().toISOString().split('T')[0];
     try {
-      const res = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, activity: selectedActivity, mins: duration, date }) });
+      const res = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, activity: selectedActivity, mins: duration, date, challenge: CHALLENGE.id }) });
       const data = await res.json();
       if (res.ok) { showToast('Logged! ' + duration + ' min of ' + selectedActivity); selectedActivity = null; duration = 45; document.querySelectorAll('.act-btn').forEach(b => b.classList.remove('selected')); document.getElementById('dur-num').textContent = 45; document.getElementById('name-select').value = ''; document.getElementById('log-date').value = ''; document.getElementById('log-date').value = ''; }
       else { showToast(data.error || 'Something went wrong'); }
@@ -141,12 +142,15 @@
     btn.disabled = false; btn.textContent = 'Log workout';
   }
   function showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(t._timer); t._timer = setTimeout(() => t.classList.remove('show'), 3000); }
-  // Populate date dropdown with past May 2026 dates
+  // Populate date dropdown from challenge config
   const dateSelect = document.getElementById('log-date');
   const today = new Date();
   const todayStr = today.toISOString().split('T')[0];
-  for (let d = 1; d <= 31; d++) {
-    const date = new Date(2026, 4, d);
+  const startParts = CHALLENGE.startDate.split('-');
+  const startYear = parseInt(startParts[0]);
+  const startMonth = parseInt(startParts[1]) - 1;
+  for (let d = 1; d <= CHALLENGE.days; d++) {
+    const date = new Date(startYear, startMonth, d);
     const dateStr = date.toISOString().split('T')[0];
     if (dateStr >= todayStr) break;
     const label = date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
@@ -155,6 +159,11 @@
     opt.textContent = label;
     dateSelect.appendChild(opt);
   }
+
+  // Set header from config
+  document.getElementById('log-title').textContent = CHALLENGE.name;
+  document.getElementById('log-sub').textContent = CHALLENGE.goalHours + ' hours · ' + CHALLENGE.month;
+  document.title = CHALLENGE.name;
 
   const saved = localStorage.getItem('may-challenge-name');
   if (saved) document.getElementById('name-select').value = saved;

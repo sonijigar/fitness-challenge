@@ -19,7 +19,7 @@ module.exports = async (req, res) => {
   const response = await fetch(`${supabaseUrl}/rest/v1/workouts`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'apikey': supabaseKey, 'Authorization': `Bearer ${supabaseKey}`, 'Prefer': 'return=minimal' },
-    body: JSON.stringify({ name, activity, mins: minutes, date })
+    body: JSON.stringify({ name, activity, mins: minutes, date, challenge: req.body.challenge || 'june-2026' })
   });
   if (!response.ok) { const err = await response.text(); console.error('Supabase error:', err); return res.status(500).json({ error: 'Failed to save', detail: err }); }
   return res.status(200).json({ success: true, message: `Logged ${minutes} min of ${activity} for ${name}` });
