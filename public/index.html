@@ -93,6 +93,7 @@
         <button class="act-btn" data-activity="Yoga" onclick="selectActivity(this)"><span class="act-icon">🧘</span><span class="act-label">Yoga</span></button>
         <button class="act-btn" data-activity="Volleyball" onclick="selectActivity(this)"><span class="act-icon">🏐</span><span class="act-label">Volleyball</span></button>
         <button class="act-btn" data-activity="Climbing" onclick="selectActivity(this)"><span class="act-icon">🧗</span><span class="act-label">Climbing</span></button>
+        <button class="act-btn" data-activity="Stairstepper" onclick="selectActivity(this)"><span class="act-icon">🪜</span><span class="act-label">Stairstepper</span></button>
         <button class="act-btn" data-activity="Other" onclick="selectActivity(this)"><span class="act-icon">⚡</span><span class="act-label">Other</span></button>
       </div>
     </div>
@@ -163,7 +164,7 @@
 
   // Set header from config
   document.getElementById('log-title').textContent = CHALLENGE.name;
-  document.getElementById('log-sub').textContent = CHALLENGE.goalHours + ' hours · ' + CHALLENGE.month;
+  document.getElementById('log-sub').textContent = '🥉' + CHALLENGE.goals.bronze + ' 🥈' + CHALLENGE.goals.silver + ' 🥇' + CHALLENGE.goals.gold + ' hrs · ' + CHALLENGE.month;
   document.title = CHALLENGE.name;
 
   const saved = localStorage.getItem('may-challenge-name');
