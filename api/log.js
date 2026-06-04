@@ -10,7 +10,24 @@ module.exports = async (req, res) => {
   const { name, activity, mins, date } = req.body;
   if (!name || !activity || !mins || !date) return res.status(400).json({ error: 'Missing fields', received: { name, activity, mins, date } });
   if (!MEMBERS.includes(name)) return res.status(400).json({ error: `Unknown member: ${name}` });
-  if (!ACTIVITIES.includes(activity)) return res.status(400).json({ error: 'Unknown activity', received: activity });
+  // Fuzzy match Apple Health workout types to our activities
+  const ACT_MAP = {
+    'running': 'Running', 'run': 'Running', 'outdoor run': 'Running', 'indoor run': 'Running',
+    'hiking': 'Hiking', 'hike': 'Hiking',
+    'traditional strength training': 'Lifting', 'functional strength training': 'Lifting', 'strength training': 'Lifting', 'lifting': 'Lifting', 'gym': 'Lifting', 'weights': 'Lifting',
+    'cycling': 'Cycling', 'indoor cycling': 'Cycling', 'outdoor cycling': 'Cycling', 'cycle': 'Cycling', 'biking': 'Cycling',
+    'walking': 'Weighted Walking', 'outdoor walk': 'Weighted Walking', 'indoor walk': 'Incline Walking',
+    'weighted walking': 'Weighted Walking', 'incline walking': 'Incline Walking',
+    'high intensity interval training': 'HIIT', 'hiit': 'HIIT', 'interval training': 'HIIT', 'cross training': 'HIIT',
+    'swimming': 'Swimming', 'pool swim': 'Swimming', 'open water swim': 'Swimming', 'swim': 'Swimming',
+    'yoga': 'Yoga', 'flexibility': 'Yoga', 'mind and body': 'Yoga',
+    'volleyball': 'Volleyball',
+    'climbing': 'Climbing', 'bouldering': 'Climbing',
+    'stairstepper': 'Stairstepper', 'stair stepper': 'Stairstepper', 'stair climbing': 'Stairstepper', 'step training': 'Stairstepper',
+  };
+  const mapped = ACT_MAP[activity.toLowerCase()] || (ACTIVITIES.includes(activity) ? activity : null);
+  if (!mapped) return res.status(400).json({ error: 'Unknown activity', received: activity });
+  const finalActivity = mapped;
   const minutes = parseInt(String(mins).replace(/[^0-9]/g, ''));
   if (isNaN(minutes) || minutes < 1 || minutes > 600) return res.status(400).json({ error: 'Invalid mins', received: mins });
   const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -19,8 +36,8 @@ module.exports = async (req, res) => {
   const response = await fetch(`${supabaseUrl}/rest/v1/workouts`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'apikey': supabaseKey, 'Authorization': `Bearer ${supabaseKey}`, 'Prefer': 'return=minimal' },
-    body: JSON.stringify({ name, activity, mins: minutes, date, challenge: req.body.challenge || 'june-2026' })
+    body: JSON.stringify({ name, activity: finalActivity, mins: minutes, date, challenge: req.body.challenge || 'june-2026' })
   });
   if (!response.ok) { const err = await response.text(); console.error('Supabase error:', err); return res.status(500).json({ error: 'Failed to save', detail: err }); }
-  return res.status(200).json({ success: true, message: `Logged ${minutes} min of ${activity} for ${name}` });
+  return res.status(200).json({ success: true, message: `Logged ${minutes} min of ${finalActivity} for ${name}` });
 };
