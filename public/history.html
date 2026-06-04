@@ -4,7 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>May Challenge · History</title>
+<title>Challenge · History</title>
+<script src="/config.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -124,8 +125,8 @@
 <div class="page">
   <div class="header">
     <div class="header-left">
-      <h1>MAY <span>CHALLENGE</span></h1>
-      <p>PERSONAL HISTORY · MAY 2026</p>
+      <h1 id="hist-header">CHALLENGE</h1>
+      <p id="hist-sub">PERSONAL HISTORY</p>
     </div>
   </div>
 
@@ -158,16 +159,16 @@
 <div class="toast" id="toast"></div>
 
 <script>
-const SUPABASE_URL = 'https://teyafvhzoznsjknhinrd.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_BwZtfeVzUS_hoY-3L75T1w_CfFntJYM';
-const GOAL_MINS = 250 * 60;
-const MEMBERS = ['Ashka','Heli','Himani','Jigar','Karan','Kashyap','Khushboo','Malhar','Raghav','Vishrut'];
+// Config loaded from /config.js
+
+const GOAL_MINS = CHALLENGE.goalMins;
+// MEMBERS loaded from /config.js
 const COLORS = [
   ['#0d3d2c','#4ade80'],['#1a2a4a','#60a5fa'],['#3d2a0d','#fbbf24'],
   ['#3d0d2a','#f472b6'],['#1a3d1a','#86efac'],['#2a1a3d','#a78bfa'],
   ['#3d1a0d','#fb923c'],['#2a2a1a','#d4d4aa'],['#3d0d0d','#f87171'],['#0d2a3d','#38bdf8']
 ];
-const ACT_ICONS = {Running:'🏃',Hiking:'🥾',Lifting:'🏋️',Cycling:'🚴',Walking:'🚶',HIIT:'💪',Swimming:'🏊',Yoga:'🧘',Volleyball:'🏐',Climbing:'🧗',Other:'⚡'};
+const ACT_ICONS = {Running:'🏃',Hiking:'🥾',Lifting:'🏋️',Cycling:'🚴','Weighted Walking':'🏋️‍♂️','Incline Walking':'⛰️',HIIT:'💪',Swimming:'🏊',Yoga:'🧘',Volleyball:'🏐',Climbing:'🧗',Other:'⚡'};
 const ACT_COLORS = ['#1D9E75','#5580e0','#e0a855','#e05555','#a855e0','#55e0c8','#e08055','#80e055','#e055c8','#5580e0','#e0a855'];
 
 function getNameFromURL() {
@@ -177,7 +178,7 @@ function getNameFromURL() {
 
 async function fetchWorkouts(name) {
   const encoded = encodeURIComponent(name);
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/workouts?select=*&name=eq.${encoded}&order=date.desc,created_at.desc`, {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/workouts?select=*&name=eq.${encoded}&challenge=eq.${CHALLENGE.id}&order=date.desc,created_at.desc`, {
     headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
   });
   return res.json();
@@ -212,7 +213,7 @@ function render(name, workouts) {
 
   // Update nav
   document.getElementById('nav-name').textContent = name;
-  document.title = `May Challenge · ${name}`;
+  document.title = `${CHALLENGE.name} · ${name}`;
 
   document.getElementById('main-content').innerHTML = `
     <!-- HERO -->
@@ -378,6 +379,10 @@ async function confirmDelete() {
     showToast('Network error — try again');
   }
 }
+
+// Set headers from config
+document.getElementById('hist-header').innerHTML = CHALLENGE.header + ' <span>CHALLENGE</span>';
+document.getElementById('hist-sub').textContent = 'PERSONAL HISTORY · ' + CHALLENGE.month.toUpperCase();
 
 // Init
 const name = getNameFromURL();

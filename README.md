@@ -76,7 +76,17 @@ SUPABASE_ANON_KEY=your-anon-key
 
 Ashka · Heli · Himani · Jigar · Karan · Kashyap · Khushboo · Malhar · Raghav · Vishrut
 
-To add or remove a member, update the `MEMBERS` array in `api/log.js` and the `<select>` in `public/index.html`.
+To add or remove a member, update the `MEMBERS` array in `public/config.js` and the `<select>` in `public/index.html`.
+
+---
+
+## Switching to a new month
+
+1. Run the migration SQL in Supabase (e.g. `supabase-migration-june.sql`)
+2. Edit `public/config.js` — update `id`, `name`, `month`, `header`, `startDate`, `days`
+3. Update the default in `api/log.js` fallback challenge value
+4. Push to main — Vercel auto-deploys
+5. Previous month's data is preserved in the same table, filtered by the `challenge` column
 
 ---
 
