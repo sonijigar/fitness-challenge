@@ -1,5 +1,5 @@
 const MEMBERS = ['Ashka','Heli','Himani','Jigar','Karan','Kashyap','Khushboo','Malhar','Raghav','Vishrut'];
-const ACTIVITIES = ['Running','Hiking','Lifting','Cycling','Walking','HIIT','Swimming','Yoga','Volleyball','Climbing','Other'];
+const ACTIVITIES = ['Running','Hiking','Lifting','Cycling','Weighted Walking','Incline Walking','HIIT','Swimming','Yoga','Volleyball','Climbing','Other'];
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');

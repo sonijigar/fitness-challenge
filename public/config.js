@@ -18,7 +18,7 @@ CHALLENGE.start = new Date(CHALLENGE.startDate + 'T00:00:00');
 
 // Members and activities
 const MEMBERS = ['Ashka','Heli','Himani','Jigar','Karan','Kashyap','Khushboo','Malhar','Raghav','Vishrut'];
-const ACTIVITIES = ['Running','Hiking','Lifting','Cycling','Walking','HIIT','Swimming','Yoga','Volleyball','Climbing','Other'];
+const ACTIVITIES = ['Running','Hiking','Lifting','Cycling','Weighted Walking','Incline Walking','HIIT','Swimming','Yoga','Volleyball','Climbing','Other'];
 
 // Supabase (public anon key — safe for frontend)
 const SUPABASE_URL = 'https://teyafvhzoznsjknhinrd.supabase.co';
